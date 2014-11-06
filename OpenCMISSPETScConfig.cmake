@@ -16,6 +16,7 @@ macro(CHECKEXTERN NAME)
         find_package(${NAME} CONFIG REQUIRED)
         SET(PETSC_HAVE_${NAME} YES)
         LIST(APPEND PETSC_PACKAGE_LIBS ${ARGN})
+    endif()
 endmacro()
 
 CHECKEXTERN(METIS metis)
