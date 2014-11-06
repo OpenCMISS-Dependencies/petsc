@@ -1,6 +1,11 @@
 # Simply use whatever else configuration is provided by PETSc config run
 include (./PETScConfig.cmake)
 
+configure_file(include/petscconf.h.in include/petscconf.h COPYONLY)
+configure_file(include/petscconfiginfo.h.in include/petscconfiginfo.h COPYONLY)
+configure_file(include/petscfix.h.in include/petscfix.h COPYONLY)
+configure_file(include/petscmachineinfo.h.in include/petscmachineinfo.h COPYONLY)
+
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
 SET(PETSC_HAVE_CXX YES)
@@ -12,6 +17,7 @@ find_package(LAPACK CONFIG REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
 
 macro(CHECKEXTERN NAME)
+    option(USE_${NAME} "Build PETSc with ${NAME}" ON)
     if (USE_${NAME})
         find_package(${NAME} CONFIG REQUIRED)
         SET(PETSC_HAVE_${NAME} YES)
@@ -33,3 +39,5 @@ CHECKEXTERN(SUNDIALS sundials_cvode sundials_fcvode sundials_cvodes
     sundials_nvecparallel sundials_nvecserial
     )
 CHECKEXTERN(HYPRE hypre)
+
+#message(STATUS "All PETSC libs: ${PETSC_PACKAGE_LIBS}")
