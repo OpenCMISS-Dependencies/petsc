@@ -1,0 +1,19 @@
+static const char *petscmachineinfo = "\n"
+"-----------------------------------------\n"
+"Libraries compiled on Thu Nov  6 09:33:47 2014 on bioeng205 \n"
+"Machine characteristics: Linux-3.2.0-70-generic-x86_64-with-Ubuntu-12.04-precise\n"
+"Using PETSc directory: /people/dwir109/software/petsc\n"
+"Using PETSc arch: arch-linux2-c-debug\n"
+"-----------------------------------------\n";
+static const char *petsccompilerinfo = "\n"
+"Using C compiler: mpicc  -Wall -Wwrite-strings -Wno-strict-aliasing -Wno-unknown-pragmas -g3 -O0  ${COPTFLAGS} ${CFLAGS}\n"
+"Using Fortran compiler: mpif90  -Wall -Wno-unused-variable -ffree-line-length-0 -Wno-unused-dummy-argument -g -O0   ${FOPTFLAGS} ${FFLAGS} \n"
+"-----------------------------------------\n";
+static const char *petsccompilerflagsinfo = "\n"
+"Using include paths: -I/people/dwir109/software/petsc/arch-linux2-c-debug/include -I/people/dwir109/software/petsc/include -I/people/dwir109/software/petsc/include -I/people/dwir109/software/petsc/arch-linux2-c-debug/include -I/people/dwir109/ocms/dependencies/install/release/include -I/people/dwir109/ocms/dependencies/install/release/include/pastix/int32/d -I/people/dwir109/ocms/dependencies/install/release/include/superlu_dist -I/people/dwir109/ocms/dependencies/install/release/include/superlu -I/people/dwir109/ocms/dependencies/install/release/include/metis-5.1 -I/usr/include/mpich2\n"
+"-----------------------------------------\n";
+static const char *petsclinkerinfo = "\n"
+"Using C linker: mpicc\n"
+"Using Fortran linker: mpif90\n"
+"Using libraries: -Wl,-rpath,/people/dwir109/software/petsc/arch-linux2-c-debug/lib -L/people/dwir109/software/petsc/arch-linux2-c-debug/lib -lpetsc -Wl,-rpath,/people/dwir109/ocms/dependencies/install/release/lib -L/people/dwir109/ocms/dependencies/install/release/lib -lamd -lcamd -lccolamd -lbtf -lklu -lcolamd -lsuitesparseconfig -lumfpack-5.7.0 -lcholmod-3.0.1 -lpastix-5.2.2.16 -lpastix-matrix-driver-5.2.2.16 -lmetis-4.0.3 -lptscotch-6.0.3 -lscotch-6.0.3 -lmumps-4.10.0 -lscalapack-2.8 -lsuperlu-dist-4.3 -lsuperlu-4.3 -lsundials_cvode -lsundials_cvodes -lsundials_fcvode -lsundials_fida -lsundials_fkinsol -lsundials_fnvecparallel -lsundials_ida -lsundials_idas -lsundials_kinsol -lsundials_nvecparallel -lsundials_nvecserial -lhypre-2.9.0 -llapack -lblas -lparmetis -Wl,-rpath,/people/dwir109/ocms/dependencies/install/release/lib/metis-5.1 -L/people/dwir109/ocms/dependencies/install/release/lib/metis-5.1 -lmetis-5.1 -lX11 -lpthread -lssl -lcrypto -lptscotch-6.0.3 -lscotch-6.0.3 -lm -L/usr/lib/gcc/x86_64-linux-gnu/4.6 -L/usr/lib/x86_64-linux-gnu -L/lib/x86_64-linux-gnu -lmpichf90 -lgfortran -lm -lgfortran -lm -lquadmath -lm -lmpichcxx -lstdc++ -L/usr/lib/gcc/x86_64-linux-gnu/4.6 -L/usr/lib/x86_64-linux-gnu -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -ldl -lmpich -lopa -lmpl -lrt -lcr -lpthread -lgcc_s -ldl  \n"
+"-----------------------------------------\n";
