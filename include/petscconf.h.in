@@ -81,9 +81,9 @@
 #define PETSC_LIB_DIR "/people/dwir109/software/petsc/arch-linux2-c-debug/lib"
 #endif
 
-#ifndef PETSC_HAVE_SUPERLU_DIST
+/*#ifndef PETSC_HAVE_SUPERLU_DIST
 #define PETSC_HAVE_SUPERLU_DIST 1
-#endif
+#endif*/
 
 #ifndef PETSC_HAVE_PARMETIS
 #define PETSC_HAVE_PARMETIS 1
@@ -153,9 +153,9 @@
 #define PETSC_HAVE_PTSCOTCH 1
 #endif
 
-#ifndef PETSC_HAVE_METIS
+/*#ifndef PETSC_HAVE_METIS
 #define PETSC_HAVE_METIS 1
-#endif
+#endif*/
 
 #ifndef PETSC_DIR_SEPARATOR
 #define PETSC_DIR_SEPARATOR '/'

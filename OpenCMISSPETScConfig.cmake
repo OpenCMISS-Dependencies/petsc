@@ -1,10 +1,10 @@
 # Simply use whatever else configuration is provided by PETSc config run
 include (./PETScConfig.cmake)
 
-configure_file(include/petscconf.h.in include/petscconf.h COPYONLY)
-configure_file(include/petscconfiginfo.h.in include/petscconfiginfo.h COPYONLY)
-configure_file(include/petscfix.h.in include/petscfix.h COPYONLY)
-configure_file(include/petscmachineinfo.h.in include/petscmachineinfo.h COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscconf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscconf.h COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscconfiginfo.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscconfiginfo.h COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscfix.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscfix.h COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscmachineinfo.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscmachineinfo.h COPYONLY)
 
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
@@ -25,13 +25,13 @@ macro(CHECKEXTERN NAME)
     endif()
 endmacro()
 
-CHECKEXTERN(METIS metis)
+#CHECKEXTERN(METIS metis)
 CHECKEXTERN(PARMETIS parmetis metis)
 CHECKEXTERN(PTSCOTCH scotch ptscotch)
 CHECKEXTERN(SUITESPARSE suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
 CHECKEXTERN(PASTIX pastix)
 CHECKEXTERN(MUMPS mumps)
-CHECKEXTERN(SUPERLU_DIST superlu_dist)
+#CHECKEXTERN(SUPERLU_DIST superlu_dist)
 CHECKEXTERN(SUPERLU superlu)
 CHECKEXTERN(SUNDIALS sundials_cvode sundials_fcvode sundials_cvodes
     sundials_ida sundials_fida sundials_idas
