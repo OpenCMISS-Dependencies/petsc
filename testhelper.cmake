@@ -1,5 +1,6 @@
 # Crazy: remove " from string boundaries
 STRING(REGEX REPLACE "^\"|\"$" "" ARGS ${ARGS})
+message(STATUS "Running command '${CMD} ${ARGS}'")
 # separate arguments into a list that can be used with execute_process
 separate_arguments(ARGS)
 execute_process(COMMAND ${CMD} ${ARGS}
