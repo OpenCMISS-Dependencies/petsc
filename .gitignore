@@ -1,3 +1,8 @@
+include/petscconf.h
+include/petscconfiginfo.h
+include/petscfix.h
+include/petscmachineinfo.h
+*.testout
 build/
 *.bkp
 *.info
