@@ -1812,7 +1812,9 @@ endif()
 install(DIRECTORY "${PETSc_BINARY_DIR}/include/" DESTINATION include/petsc
     FILES_MATCHING PATTERN "*.mod")
 install(DIRECTORY include/ DESTINATION include/petsc
-    FILES_MATCHING PATTERN "*.h")    
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN "petsc-private/*.h" EXCLUDE
+    PATTERN "petsc-private/kernels/*.h" EXCLUDE)    
 install(EXPORT petsc-config DESTINATION lib/cmake)
 include(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/petsc-config-version.cmake COMPATIBILITY AnyNewerVersion)
