@@ -1,11 +1,6 @@
 # Simply use whatever else configuration is provided by PETSc config run
 include (./PETScConfig.cmake)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscconf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscconf.h COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscconfiginfo.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscconfiginfo.h COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscfix.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscfix.h COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/petscmachineinfo.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/petscmachineinfo.h COPYONLY)
-
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
 SET(PETSC_HAVE_CXX YES)
@@ -13,32 +8,66 @@ SET(PETSC_USE_SINGLE_LIBRARY 1)
 SET(BUILD_SHARED_LIBS NO)
 
 find_package(MPI REQUIRED)
+LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH})
 find_package(BLAS CONFIG REQUIRED)
 find_package(LAPACK CONFIG REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
 
-macro(CHECKEXTERN NAME)
-    option(USE_${NAME} "Build PETSc with ${NAME}" ON)
-    if (USE_${NAME})
-        find_package(${NAME} CONFIG REQUIRED)
-        SET(PETSC_HAVE_${NAME} YES)
-        LIST(APPEND PETSC_PACKAGE_LIBS ${ARGN})
-    endif()
-endmacro()
-
-CHECKEXTERN(PARMETIS parmetis metis)
-CHECKEXTERN(PTSCOTCH scotch ptscotch)
-CHECKEXTERN(SUITESPARSE suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
-CHECKEXTERN(PASTIX pastix)
-CHECKEXTERN(SCALAPACK scalapack)
-CHECKEXTERN(MUMPS mumps)
-#CHECKEXTERN(SUPERLU_DIST superlu_dist)
-CHECKEXTERN(SUPERLU superlu)
-CHECKEXTERN(SUNDIALS sundials_cvode sundials_fcvode sundials_cvodes
+# Define list of all external packages and their targets (=libraries)
+SET(ALLEXT SCALAPACK PARMETIS PTSCOTCH SUITESPARSE PASTIX MUMPS SUPERLU SUNDIALS HYPRE) #SUPERLU_DIST
+SET(PARMETIS_TARGETS parmetis metis)
+SET(PTSCOTCH_TARGETS scotch ptscotch)
+SET(SUITESPARSE_TARGETS suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
+SET(PASTIX_TARGETS pastix)
+SET(SCALAPACK_TARGETS scalapack)
+SET(MUMPS_TARGETS mumps)
+SET(SUPERLU_DIST_TARGETS superlu_dist)
+SET(SUPERLU_TARGETS superlu)
+SET(SUNDIALS_TARGETS sundials_cvode sundials_fcvode sundials_cvodes
     sundials_ida sundials_fida sundials_idas
     sundials_kinsol sundials_fkinsol
     sundials_nvecparallel sundials_nvecserial
     )
-CHECKEXTERN(HYPRE hypre)
+SET(HYPRE_TARGETS hypre)
 
-#message(STATUS "All PETSC libs: ${PETSC_PACKAGE_LIBS}")
+SET(PETSCCONF_HAVE_FLAGS )
+SET(PETSC_CONFIG_DEFS )
+foreach(PACKAGE ${ALLEXT})
+    # Define the option
+    option(USE_${PACKAGE} "Build PETSc with ${PACKAGE}" ON)
+    
+    # See if we want to use it
+    if (USE_${PACKAGE})
+        find_package(${PACKAGE} CONFIG REQUIRED)
+        # Set the petsc-have flag
+        SET(PETSC_HAVE_${PACKAGE} YES)
+        # Add targets to link targets list
+        LIST(APPEND PETSC_PACKAGE_LIBS ${${PACKAGE}_TARGETS})
+    endif()
+    
+    # If found, add definitions to header and information files
+    if (PETSC_HAVE_${PACKAGE})
+        # petscconfig.h
+        LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
+        STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
+        # petscconfiginfo.h
+        STRING(TOLOWER ${PACKAGE} pkgname)
+        SET(INCLUDES )
+        SET(LIBRARIES )
+        foreach(TARGET ${${PACKAGE}_TARGETS})
+            get_target_property(INCDIR ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+            LIST(APPEND INCLUDES ${INCDIR})
+            get_target_property(TARGET_FILE ${TARGET} LOCATION)
+            LIST(APPEND LIBRARIES ${TARGET_FILE})
+        endforeach()
+        STRING(REPLACE ";" "," LIBRARIES "${LIBRARIES}")
+        STRING(REPLACE ";" "," INCLUDES "${INCLUDES}")
+        LIST(APPEND PETSC_CONFIG_DEFS "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
+        STRING(REPLACE ";" " " PETSC_CONFIG_DEFS "${PETSC_CONFIG_DEFS}")
+    endif()
+endforeach()
+# Configure the build-dependent header files
+configure_file(${PETSc_SOURCE_DIR}/include/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
+configure_file(${PETSc_SOURCE_DIR}/include/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
+configure_file(${PETSc_SOURCE_DIR}/include/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
+configure_file(${PETSc_SOURCE_DIR}/include/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)

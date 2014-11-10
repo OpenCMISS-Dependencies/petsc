@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
+option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
 include (./OpenCMISSPETScConfig.cmake)
 
 if (APPLE)
@@ -1811,10 +1812,15 @@ endif()
 # Install Fortran modules
 install(DIRECTORY "${PETSc_BINARY_DIR}/include/" DESTINATION include/petsc
     FILES_MATCHING PATTERN "*.mod")
+# Install common headers    
 install(DIRECTORY include/ DESTINATION include/petsc
     FILES_MATCHING PATTERN "*.h"
     PATTERN "petsc-private/*.h" EXCLUDE
-    PATTERN "petsc-private/kernels/*.h" EXCLUDE)    
+    PATTERN "petsc-private/kernels/*.h" EXCLUDE)
+# Install custom headers    
+install(DIRECTORY ${PETSc_BINARY_DIR}/include/
+    DESTINATION include/petsc
+    FILES_MATCHING PATTERN "*.h")   
 install(EXPORT petsc-config DESTINATION lib/cmake)
 include(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/petsc-config-version.cmake COMPATIBILITY AnyNewerVersion)
