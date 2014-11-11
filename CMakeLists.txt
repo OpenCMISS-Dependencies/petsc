@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
