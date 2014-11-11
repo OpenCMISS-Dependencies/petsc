@@ -92,13 +92,12 @@ set (PETSC_USING_F2003 YES)
 find_library (PETSC_X11_LIB X11 HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_SSL_LIB ssl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_CRYPTO_LIB crypto HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_MPICHF90_LIB mpichf90 HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_GFORTRAN_LIB gfortran HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_QUADMATH_LIB quadmath HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_M_LIB m HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_MPICHCXX_LIB mpichcxx HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
+
+#find_library (PETSC_GFORTRAN_LIB gfortran HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
+#find_library (PETSC_QUADMATH_LIB quadmath HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
+#find_library (PETSC_M_LIB m HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
+
 find_library (PETSC_STDC++_LIB stdc++ HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_MPICH_LIB mpich HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_OPA_LIB opa HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_MPL_LIB mpl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_RT_LIB rt HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
@@ -107,8 +106,8 @@ find_library (PETSC_PTHREAD_LIB pthread HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4
 find_library (PETSC_GCC_S_LIB gcc_s HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_DL_LIB dl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 #mark_as_advanced (PETSC_AMD_LIB PETSC_CAMD_LIB PETSC_CCOLAMD_LIB PETSC_BTF_LIB PETSC_KLU_LIB PETSC_COLAMD_LIB PETSC_SUITESPARSECONFIG_LIB PETSC_UMFPACK-5.7.0_LIB PETSC_CHOLMOD-3.0.1_LIB PETSC_PASTIX-5.2.2.16_LIB PETSC_PASTIX-MATRIX-DRIVER-5.2.2.16_LIB PETSC_METIS-4.0.3_LIB PETSC_MUMPS-4.10.0_LIB PETSC_SCALAPACK-2.8_LIB PETSC_SUPERLU-DIST-4.3_LIB PETSC_SUPERLU-4.3_LIB PETSC_SUNDIALS_CVODE_LIB PETSC_SUNDIALS_CVODES_LIB PETSC_SUNDIALS_FCVODE_LIB PETSC_SUNDIALS_FIDA_LIB PETSC_SUNDIALS_FKINSOL_LIB PETSC_SUNDIALS_FNVECPARALLEL_LIB PETSC_SUNDIALS_IDA_LIB PETSC_SUNDIALS_IDAS_LIB PETSC_SUNDIALS_KINSOL_LIB PETSC_SUNDIALS_NVECPARALLEL_LIB PETSC_SUNDIALS_NVECSERIAL_LIB PETSC_HYPRE-2.9.0_LIB PETSC_LAPACK_LIB PETSC_BLAS_LIB PETSC_PARMETIS_LIB PETSC_METIS-5.1_LIB PETSC_X11_LIB PETSC_SSL_LIB PETSC_CRYPTO_LIB PETSC_PTSCOTCH-6.0.3_LIB PETSC_SCOTCH-6.0.3_LIB PETSC_MPICHF90_LIB PETSC_GFORTRAN_LIB PETSC_QUADMATH_LIB PETSC_M_LIB PETSC_MPICHCXX_LIB PETSC_STDC++_LIB PETSC_MPICH_LIB PETSC_OPA_LIB PETSC_MPL_LIB PETSC_RT_LIB PETSC_CR_LIB PETSC_PTHREAD_LIB PETSC_GCC_S_LIB PETSC_DL_LIB)
-set (PETSC_PACKAGE_LIBS "${PETSC_X11_LIB}" "${PETSC_SSL_LIB}" "${PETSC_CRYPTO_LIB}" "${PETSC_MPICHF90_LIB}"
-    "${PETSC_GFORTRAN_LIB}" "${PETSC_QUADMATH_LIB}" "${PETSC_M_LIB}" "${PETSC_MPICHCXX_LIB}" "${PETSC_STDC++_LIB}"
-    "${PETSC_MPICH_LIB}" "${PETSC_OPA_LIB}" "${PETSC_MPL_LIB}" "${PETSC_RT_LIB}" "${PETSC_CR_LIB}" "${PETSC_PTHREAD_LIB}"
+set (PETSC_PACKAGE_LIBS "${PETSC_X11_LIB}" "${PETSC_SSL_LIB}" "${PETSC_CRYPTO_LIB}" 
+    "${PETSC_GFORTRAN_LIB}" "${PETSC_QUADMATH_LIB}" "${PETSC_M_LIB}" 
+    "${PETSC_STDC++_LIB}" "${PETSC_OPA_LIB}" "${PETSC_MPL_LIB}" "${PETSC_RT_LIB}" "${PETSC_CR_LIB}" "${PETSC_PTHREAD_LIB}"
     "${PETSC_GCC_S_LIB}" "${PETSC_DL_LIB}")
 set (PETSC_PACKAGE_INCLUDES )
