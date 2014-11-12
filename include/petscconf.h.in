@@ -176,9 +176,9 @@
 #define PETSC_USE_ISATTY 1
 #endif
 
-#ifndef PETSC_HAVE_SOWING
+/*#ifndef PETSC_HAVE_SOWING
 #define PETSC_HAVE_SOWING 1
-#endif
+#endif*/
 
 #ifndef PETSC_SLSUFFIX
 #define PETSC_SLSUFFIX ""

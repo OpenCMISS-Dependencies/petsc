@@ -1,4 +1,4 @@
-# Simply use whatever else configuration is provided by PETSc config run
+# Init with whatever else configuration is provided by PETSc config run
 include (./PETScConfig.cmake)
 
 # Fixed settings
@@ -22,6 +22,23 @@ find_package(BLAS CONFIG REQUIRED)
 find_package(LAPACK CONFIG REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
 
+macro(ADD_CONFIG_DEF PACKAGE)
+    LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
+endmacro()
+
+# Valgrind - Linux only
+if (UNIX)
+    find_package(VALGRIND QUIET)
+    if (VALGRIND_FOUND)
+        message(STATUS "Found Valgrind: ${VALGRIND_INCLUDE_DIR}")
+        SET(PETSC_HAVE_VALGRIND YES)
+        ADD_CONFIG_DEF(VALGRIND)
+        LIST(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
+    endif()  
+endif()
+# Sowing: Only for docs creation. Not needed with dependencies
+set (PETSC_HAVE_SOWING NO)
+
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT SCALAPACK PARMETIS PTSCOTCH SUITESPARSE PASTIX MUMPS SUPERLU SUNDIALS HYPRE) #SUPERLU_DIST
 SET(PARMETIS_TARGETS parmetis metis)
@@ -40,7 +57,7 @@ SET(SUNDIALS_TARGETS sundials_cvode sundials_fcvode sundials_cvodes
 SET(HYPRE_TARGETS hypre)
 
 SET(PETSCCONF_HAVE_FLAGS )
-SET(PETSC_CONFIG_DEFS )
+SET(PETSC_CONFIGINFO_STRING )
 foreach(PACKAGE ${ALLEXT})
     # Define the option
     option(USE_${PACKAGE} "Build PETSc with ${PACKAGE}" ON)
@@ -57,8 +74,8 @@ foreach(PACKAGE ${ALLEXT})
     # If found, add definitions to header and information files
     if (PETSC_HAVE_${PACKAGE})
         # petscconfig.h
-        LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
-        STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
+        ADD_CONFIG_DEF(${PACKAGE})
+        
         # petscconfiginfo.h
         STRING(TOLOWER ${PACKAGE} pkgname)
         SET(INCLUDES )
@@ -71,12 +88,16 @@ foreach(PACKAGE ${ALLEXT})
         endforeach()
         STRING(REPLACE ";" "," LIBRARIES "${LIBRARIES}")
         STRING(REPLACE ";" "," INCLUDES "${INCLUDES}")
-        LIST(APPEND PETSC_CONFIG_DEFS "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
-        STRING(REPLACE ";" " " PETSC_CONFIG_DEFS "${PETSC_CONFIG_DEFS}")
+        LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
     endif()
 endforeach()
+
 # Configure the build-dependent header files
+STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
 configure_file(${PETSc_SOURCE_DIR}/include/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
+
+STRING(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
 configure_file(${PETSc_SOURCE_DIR}/include/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
+
 configure_file(${PETSc_SOURCE_DIR}/include/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
 configure_file(${PETSc_SOURCE_DIR}/include/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)
