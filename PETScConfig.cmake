@@ -90,9 +90,9 @@ find_library (PETSC_SSL_LIB ssl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/li
 find_library (PETSC_CRYPTO_LIB crypto HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_RT_LIB rt HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_PTHREAD_LIB pthread HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
-find_library (PETSC_GCC_S_LIB gcc_s HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_DL_LIB dl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 
+#find_library (PETSC_GCC_S_LIB gcc_s HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 #find_library (PETSC_OPA_LIB opa HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 #find_library (PETSC_MPL_LIB mpl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 #find_library (PETSC_CR_LIB cr HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
@@ -102,5 +102,5 @@ find_library (PETSC_DL_LIB dl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/
 set (PETSC_PACKAGE_LIBS "${PETSC_X11_LIB}" "${PETSC_SSL_LIB}" "${PETSC_CRYPTO_LIB}" 
     "${PETSC_GFORTRAN_LIB}" "${PETSC_QUADMATH_LIB}" "${PETSC_M_LIB}" 
     "${PETSC_STDC++_LIB}" "${PETSC_OPA_LIB}" "${PETSC_MPL_LIB}" "${PETSC_RT_LIB}" "${PETSC_CR_LIB}" "${PETSC_PTHREAD_LIB}"
-    "${PETSC_GCC_S_LIB}" "${PETSC_DL_LIB}")
+    "${PETSC_DL_LIB}")
 set (PETSC_PACKAGE_INCLUDES )
