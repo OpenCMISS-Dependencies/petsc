@@ -2,7 +2,23 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
+
+find_package(MPI REQUIRED)
+set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+
 include (./OpenCMISSPETScConfig.cmake)
+
+# Configure the build-dependent header files
+STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
+configure_file(${PETSc_SOURCE_DIR}/include/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
+
+STRING(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
+configure_file(${PETSc_SOURCE_DIR}/include/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
+
+configure_file(${PETSc_SOURCE_DIR}/include/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
+configure_file(${PETSc_SOURCE_DIR}/include/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)
 
 if (APPLE)
   SET(CMAKE_C_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
@@ -1814,9 +1830,9 @@ install(DIRECTORY "${PETSc_BINARY_DIR}/include/" DESTINATION include/petsc
     FILES_MATCHING PATTERN "*.mod")
 # Install common headers    
 install(DIRECTORY include/ DESTINATION include/petsc
-    FILES_MATCHING PATTERN "*.h"
-    PATTERN "petsc-private/*.h" EXCLUDE
-    PATTERN "petsc-private/kernels/*.h" EXCLUDE)
+    FILES_MATCHING PATTERN "*.h")
+    #PATTERN "petsc-private/*.h" EXCLUDE
+    #PATTERN "petsc-private/kernels/*.h" EXCLUDE)
 # Install custom headers    
 install(DIRECTORY ${PETSc_BINARY_DIR}/include/
     DESTINATION include/petsc

@@ -1,5 +1,5 @@
 # Init with whatever else configuration is provided by PETSc config run
-include (./PETScConfig.cmake)
+include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
@@ -10,7 +10,6 @@ SET(PETSC_USE_SINGLE_LIBRARY 1)
 SET(BUILD_SHARED_LIBS NO)
 
 # MPI
-find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
@@ -92,13 +91,3 @@ foreach(PACKAGE ${ALLEXT})
         LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
     endif()
 endforeach()
-
-# Configure the build-dependent header files
-STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
-configure_file(${PETSc_SOURCE_DIR}/include/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
-
-STRING(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
-configure_file(${PETSc_SOURCE_DIR}/include/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
-
-configure_file(${PETSc_SOURCE_DIR}/include/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
-configure_file(${PETSc_SOURCE_DIR}/include/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)
