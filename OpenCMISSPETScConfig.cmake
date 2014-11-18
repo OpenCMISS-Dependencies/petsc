@@ -17,8 +17,8 @@ set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 #LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH})
 #LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 
-find_package(BLAS CONFIG REQUIRED)
-find_package(LAPACK CONFIG REQUIRED)
+find_package(BLAS ${BLAS_VERSION} CONFIG REQUIRED)
+find_package(LAPACK ${LAPACK_VERSION} CONFIG REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
 
 macro(ADD_CONFIG_DEF PACKAGE)
@@ -64,7 +64,7 @@ foreach(PACKAGE ${ALLEXT})
     
     # See if we want to use it
     if (USE_${PACKAGE})
-        find_package(${PACKAGE} CONFIG REQUIRED)
+        find_package(${PACKAGE} ${${PACKAGE}_VERSION} CONFIG REQUIRED)
         # Set the petsc-have flag
         SET(PETSC_HAVE_${PACKAGE} YES)
         # Add targets to link targets list
