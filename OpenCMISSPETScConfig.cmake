@@ -46,7 +46,7 @@ SET(PTSCOTCH_TARGETS scotch ptscotch)
 SET(SUITESPARSE_TARGETS suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
 SET(PASTIX_TARGETS pastix)
 SET(SCALAPACK_TARGETS scalapack)
-SET(MUMPS_TARGETS mumps)
+SET(MUMPS_TARGETS pord mumps_common smumps dmumps)
 SET(SUPERLU_DIST_TARGETS superlu_dist)
 SET(SUPERLU_TARGETS superlu)
 SET(SUNDIALS_TARGETS sundials_cvode sundials_fcvode sundials_cvodes
@@ -64,11 +64,14 @@ foreach(PACKAGE ${ALLEXT})
     
     # See if we want to use it
     if (USE_${PACKAGE})
-        find_package(${PACKAGE} ${${PACKAGE}_VERSION} REQUIRED)
-        # Set the petsc-have flag
-        SET(PETSC_HAVE_${PACKAGE} YES)
-        # Add targets to link targets list
-        LIST(APPEND PETSC_PACKAGE_LIBS ${${PACKAGE}_TARGETS})
+        find_package(${PACKAGE} ${${PACKAGE}_VERSION} QUIET)
+        if (${PACKAGE}_FOUND)
+            message(STATUS "Building PETSC with ${PACKAGE}...")
+            # Set the petsc-have flag
+            SET(PETSC_HAVE_${PACKAGE} YES)
+            # Add targets to link targets list
+            LIST(APPEND PETSC_PACKAGE_LIBS ${${PACKAGE}_TARGETS})
+        endif()
     endif()
     
     # If found, add definitions to header and information files

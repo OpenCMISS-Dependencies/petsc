@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
+SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
 find_package(MPI REQUIRED)
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
