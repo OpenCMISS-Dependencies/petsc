@@ -39,14 +39,14 @@ endif()
 set (PETSC_HAVE_SOWING NO)
 
 # Define list of all external packages and their targets (=libraries)
-SET(ALLEXT SCALAPACK PARMETIS PTSCOTCH SUITESPARSE 
-    PASTIX MUMPS SUPERLU SUNDIALS HYPRE SUPERLU_DIST)
+SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
+    SUPERLU SUNDIALS HYPRE SUPERLU_DIST PARMETIS)
 SET(PARMETIS_TARGETS parmetis metis)
-SET(PTSCOTCH_TARGETS scotch ptscotch)
+SET(PTSCOTCH_TARGETS scotch ptscotch esmumps ptesmumps)
 SET(SUITESPARSE_TARGETS suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
 SET(PASTIX_TARGETS pastix)
 SET(SCALAPACK_TARGETS scalapack)
-SET(MUMPS_TARGETS pord mumps_common smumps dmumps)
+SET(MUMPS_TARGETS dmumps mumps_common pord) #smumps
 SET(SUPERLU_DIST_TARGETS superlu_dist)
 SET(SUPERLU_TARGETS superlu)
 SET(SUNDIALS_TARGETS sundials_cvode sundials_fcvode sundials_cvodes
@@ -73,6 +73,7 @@ foreach(PACKAGE ${ALLEXT})
             LIST(APPEND PETSC_PACKAGE_LIBS ${${PACKAGE}_TARGETS})
         endif()
     endif()
+    LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
     
     # If found, add definitions to header and information files
     if (PETSC_HAVE_${PACKAGE})
