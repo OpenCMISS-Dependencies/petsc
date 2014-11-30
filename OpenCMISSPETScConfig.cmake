@@ -95,3 +95,11 @@ foreach(PACKAGE ${ALLEXT})
         LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
     endif()
 endforeach()
+
+# SSL support
+find_package(OpenSSL QUIET)
+if (OPENSSL_FOUND)
+    message(STATUS "Building PETSc with OpenSSL ${OPENSSL_VERSION}")
+    LIST(APPEND PETSC_PACKAGE_LIBS ${OPENSSL_LIBRARIES})
+    SET(PETSC_HAVE_SSL 1)
+endif()

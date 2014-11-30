@@ -104,6 +104,8 @@
 
 /* MISC */
 
+#cmakedefine PETSC_HAVE_SSL
+
 #ifndef IS_COLORING_MAX
 #define IS_COLORING_MAX 65535
 #endif
@@ -122,10 +124,6 @@
 
 #ifndef PETSC_HAVE_PTHREAD
 #define PETSC_HAVE_PTHREAD 1
-#endif
-
-#ifndef PETSC_HAVE_SSL
-#define PETSC_HAVE_SSL 1
 #endif
 
 #ifndef PETSC_DEPRECATED
