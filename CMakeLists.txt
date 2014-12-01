@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
+option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
 find_package(MPI REQUIRED)

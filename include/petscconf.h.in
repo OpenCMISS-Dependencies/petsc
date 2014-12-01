@@ -106,6 +106,8 @@
 
 #cmakedefine PETSC_HAVE_SSL
 
+#cmakedefine PETSC_HAVE_OPENMP
+
 #ifndef IS_COLORING_MAX
 #define IS_COLORING_MAX 65535
 #endif
