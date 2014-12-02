@@ -12,6 +12,7 @@ set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 
 include (./OpenCMISSPETScConfig.cmake)
+#message(STATUS "PETSc link libraries: ${PETSC_PACKAGE_LIBS}")
 
 # Configure the build-dependent header files
 STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")

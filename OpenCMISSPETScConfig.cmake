@@ -56,9 +56,8 @@ if (USE_THREADS)
         SET(PETSC_HAVE_PTHREAD NO)
     endif()
 endif()
-# Not used anywhere: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
-checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc ${CMAKE_Fortran_IMLICIT_LIBRARIES})
-
+# Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
+checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc)
 
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
