@@ -3,7 +3,7 @@ include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
-# This should contain quadmath, m, gfortran
+# Setup the fortran libraries to be available for function checking as well
 LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 LIST(APPEND PETSC_PACKAGE_INCLUDES ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
 SET(PETSC_HAVE_CXX YES)
@@ -32,14 +32,17 @@ if (UNIX)
         message(STATUS "Found Valgrind: ${VALGRIND_INCLUDE_DIR}")
         SET(PETSC_HAVE_VALGRIND 1)
         LIST(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
-    endif()  
+    endif()
 endif()
 # Sowing: Only for docs creation. Not needed with dependencies
 set (PETSC_HAVE_SOWING NO)
 
-# Set libraries that will be included at link time for function existence tests
+# Set libraries etc that will be included at link time for function existence tests
 SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
 SET(CMAKE_REQUIRED_INCLUDES ${PETSC_PACKAGE_INCLUDES})
+foreach(FLIB ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
+    SET(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${FLIB}")    
+endforeach()
 include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
 
 # Threads
@@ -55,14 +58,6 @@ if (USE_THREADS)
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
         SET(PETSC_HAVE_PTHREAD NO)
     endif()
-endif()
-
-# X11
-find_package(X11 QUIET)
-if (X11_FOUND)
-    SET(PETSC_HAVE_X TRUE)
-    LIST(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
 endif()
 
 ########################################################
@@ -191,6 +186,15 @@ foreach(PACKAGE ${ALLEXT})
         LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
     endif()
 endforeach()
+
+########################################################
+# X11
+find_package(X11 QUIET)
+if (X11_FOUND)
+    SET(PETSC_HAVE_X TRUE)
+    LIST(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
+    LIST(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
+endif()
 
 ########################################################
 # SSL support
