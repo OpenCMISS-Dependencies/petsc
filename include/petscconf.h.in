@@ -3,6 +3,22 @@
 
 @PETSCCONF_HAVE_FLAGS@
 
+#cmakedefine PETSC_HAVE_SSL
+
+#cmakedefine PETSC_HAVE_OPENMP
+
+#cmakedefine PETSC_HAVE_VALGRIND
+
+#cmakedefine PETSC_HAVE_PTHREAD
+
+#cmakedefine PETSC_HAVE_PTHREAD_BARRIER_T
+
+#cmakedefine PETSC_HAVE_SCHED_CPU_SET_T
+
+#cmakedefine PETSC_HAVE_SYS_SYSCTL_H
+
+#cmakedefine PETSC_HAVE_GFORTRAN_IARGC
+
 /* MPI Flags */
 #ifndef PETSC_HAVE_MPI
 #define PETSC_HAVE_MPI 1
@@ -104,10 +120,6 @@
 
 /* MISC */
 
-#cmakedefine PETSC_HAVE_SSL
-
-#cmakedefine PETSC_HAVE_OPENMP
-
 #ifndef IS_COLORING_MAX
 #define IS_COLORING_MAX 65535
 #endif
@@ -122,10 +134,6 @@
 
 #ifndef PETSC_UINTPTR_T
 #define PETSC_UINTPTR_T uintptr_t
-#endif
-
-#ifndef PETSC_HAVE_PTHREAD
-#define PETSC_HAVE_PTHREAD 1
 #endif
 
 #ifndef PETSC_DEPRECATED
@@ -206,10 +214,6 @@
 
 #ifndef PETSC_HAVE_C2HTML
 #define PETSC_HAVE_C2HTML 1
-#endif
-
-#ifndef PETSC_HAVE_VALGRIND
-#define PETSC_HAVE_VALGRIND 1
 #endif
 
 #ifndef PETSC_USE_SINGLE_LIBRARY
@@ -668,10 +672,6 @@
 #define PETSC_HAVE_MEMMOVE 1
 #endif
 
-#ifndef PETSC_HAVE__GFORTRAN_IARGC
-#define PETSC_HAVE__GFORTRAN_IARGC 1
-#endif
-
 #ifndef PETSC_HAVE_GETPAGESIZE
 #define PETSC_HAVE_GETPAGESIZE 1
 #endif
@@ -804,10 +804,6 @@
 #define PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT 1
 #endif
 
-#ifndef PETSC_HAVE_GFORTRAN_IARGC
-#define PETSC_HAVE_GFORTRAN_IARGC 1
-#endif
-
 #ifndef PETSC_MEMALIGN
 #define PETSC_MEMALIGN 16
 #endif
@@ -822,18 +818,6 @@
 
 #ifndef PETSC_LEVEL1_DCACHE_ASSOC
 #define PETSC_LEVEL1_DCACHE_ASSOC 8
-#endif
-
-#ifndef PETSC_HAVE_SCHED_CPU_SET_T
-#define PETSC_HAVE_SCHED_CPU_SET_T 1
-#endif
-
-#ifndef PETSC_HAVE_PTHREAD_BARRIER_T
-#define PETSC_HAVE_PTHREAD_BARRIER_T 1
-#endif
-
-#ifndef PETSC_HAVE_SYS_SYSCTL_H
-#define PETSC_HAVE_SYS_SYSCTL_H 1
 #endif
 
 #endif

@@ -7,7 +7,6 @@ SET(PETSC_HAVE_FORTRAN YES)
 LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LIBRARIES})
 SET(PETSC_HAVE_CXX YES)
 SET(PETSC_USE_SINGLE_LIBRARY 1)
-SET(BUILD_SHARED_LIBS NO)
 
 # MPI
 set(PETSC_HAVE_MPI YES)
@@ -26,17 +25,40 @@ macro(ADD_CONFIG_DEF PACKAGE)
 endmacro()
 
 # Valgrind - Linux only
+SET(PETSC_HAVE_VALGRIND NO)
 if (UNIX)
     find_package(VALGRIND QUIET)
     if (VALGRIND_FOUND)
         message(STATUS "Found Valgrind: ${VALGRIND_INCLUDE_DIR}")
-        SET(PETSC_HAVE_VALGRIND YES)
-        ADD_CONFIG_DEF(VALGRIND)
+        SET(PETSC_HAVE_VALGRIND 1)
         LIST(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
     endif()  
 endif()
 # Sowing: Only for docs creation. Not needed with dependencies
 set (PETSC_HAVE_SOWING NO)
+# RT library
+if (UNIX AND NOT APPLE)
+    LIST(APPEND PETSC_PACKAGE_LIBS rt)
+endif()
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
+# Threads
+if (USE_THREADS)
+    find_package(Threads QUIET)
+    if (Threads_FOUND)
+        SET(PETSC_HAVE_PTHREAD YES)
+        LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
+        trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
+        trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
+        trycompile(PETSC_HAVE_SYS_SYSCTL_H "#include <sys/sysctl.h>" "int a;" c)    
+    else()
+        message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
+        SET(PETSC_HAVE_PTHREAD NO)
+    endif()
+endif()
+# Not used anywhere: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
+checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc ${CMAKE_Fortran_IMLICIT_LIBRARIES})
+
 
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
