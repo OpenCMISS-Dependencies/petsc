@@ -21,6 +21,8 @@
 
 #cmakedefine PETSC_HAVE_GFORTRAN_IARGC
 
+#cmakedefine PETSC_HAVE_X
+
 /* MPI Flags */
 #ifndef PETSC_HAVE_MPI
 #define PETSC_HAVE_MPI 1
@@ -168,10 +170,6 @@
 
 #ifndef PETSC_DIR
 #define PETSC_DIR "${PETSc_SOURCE_DIR}"
-#endif
-
-#ifndef PETSC_HAVE_X
-#define PETSC_HAVE_X 1
 #endif
 
 #ifndef PETSC_LIB_DIR

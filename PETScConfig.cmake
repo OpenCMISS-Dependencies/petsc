@@ -1,4 +1,3 @@
-set (PETSC_HAVE_X YES)
 set (PETSC_HAVE_FORK YES)
 
 set (PETSC_HAVE_SCHED_CPU_SET_T 1)
@@ -82,7 +81,6 @@ set (PETSC_CLANGUAGE_C YES)
 set (PETSC_USING_F90 YES)
 set (PETSC_USING_F2003 YES)
 
-find_library (PETSC_X11_LIB X11 HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 find_library (PETSC_DL_LIB dl HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
 
 #find_library (PETSC_GCC_S_LIB gcc_s HINTS   "/usr/lib/gcc/x86_64-linux-gnu/4.6" "/lib/x86_64-linux-gnu" "/usr/lib/x86_64-linux-gnu" )
