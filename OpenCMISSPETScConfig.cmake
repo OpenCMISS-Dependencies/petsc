@@ -50,7 +50,7 @@ if (USE_THREADS)
         LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
         trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
         trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
-        trycompile(PETSC_HAVE_SYS_SYSCTL_H "#include <sys/sysctl.h>" "int a;" c)    
+        trycompile(PETSC_HAVE_SYS_SYSCTL_H "#include <sys/sysctl.h>" "int a;" c)
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
         SET(PETSC_HAVE_PTHREAD NO)
@@ -58,6 +58,26 @@ if (USE_THREADS)
 endif()
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
 checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc)
+
+# Header availabilities
+# This list is from config/PETSc/Configure.py
+SET(SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
+    pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
+    sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
+    netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf)
+SET(PETSCCONF_HAVE_HEADERS )
+foreach(hdr ${SEARCHHEADERS})
+    STRING(TOUPPER ${hdr} HDR)
+    STRING(REPLACE "/" "_" HDR ${HDR})
+    SET(VARNAME "PETSC_HAVE_${HDR}_H")
+    #message(STATUS "Checking for header ${VARNAME}")
+    trycompile(${VARNAME} "#include <${hdr}.h>" "int a;" c)
+    if (${${VARNAME}})
+        LIST(APPEND PETSCCONF_HAVE_HEADERS "#define ${VARNAME} 1")
+    endif()
+endforeach()
+STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
+#message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
 
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
