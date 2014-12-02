@@ -4,25 +4,23 @@ include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
 # This should contain quadmath, m, gfortran
-LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LIBRARIES})
+LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 SET(PETSC_HAVE_CXX YES)
 SET(PETSC_USE_SINGLE_LIBRARY 1)
+# RT library
+if (UNIX AND NOT APPLE)
+    LIST(APPEND PETSC_PACKAGE_LIBS rt)
+endif()
 
 # MPI
 set(PETSC_HAVE_MPI YES)
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-#LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH})
-#LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 
 find_package(BLAS ${BLAS_VERSION} REQUIRED)
 find_package(LAPACK ${LAPACK_VERSION} REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
-
-macro(ADD_CONFIG_DEF PACKAGE)
-    LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
-endmacro()
 
 # Valgrind - Linux only
 SET(PETSC_HAVE_VALGRIND NO)
@@ -36,12 +34,11 @@ if (UNIX)
 endif()
 # Sowing: Only for docs creation. Not needed with dependencies
 set (PETSC_HAVE_SOWING NO)
-# RT library
-if (UNIX AND NOT APPLE)
-    LIST(APPEND PETSC_PACKAGE_LIBS rt)
-endif()
 
+# Set libraries that will be included at link time for function existence tests
+SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
 include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
+
 # Threads
 if (USE_THREADS)
     find_package(Threads QUIET)
@@ -56,8 +53,6 @@ if (USE_THREADS)
         SET(PETSC_HAVE_PTHREAD NO)
     endif()
 endif()
-# Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
-checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc)
 
 # X11
 find_package(X11 QUIET)
@@ -70,6 +65,7 @@ endif()
 ########################################################
 # Header availabilities
 # This list is from config/PETSc/Configure.py
+INCLUDE(CheckIncludeFiles)
 SET(SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
@@ -79,8 +75,7 @@ foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
     STRING(REPLACE "/" "_" HDR ${HDR})
     SET(VARNAME "PETSC_HAVE_${HDR}_H")
-    #message(STATUS "Checking for header ${VARNAME}")
-    trycompile(${VARNAME} "#include <${hdr}.h>" "int a;" c)
+    CHECK_INCLUDE_FILES("${hdr}.h" ${VARNAME})
     if (${${VARNAME}})
         LIST(APPEND PETSCCONF_HAVE_HEADERS "#define ${VARNAME} 1")
     endif()
@@ -103,6 +98,7 @@ foreach(func ${SEARCHFUNCTIONS})
     #trycompile(${VARNAME} 
     #    "#include <assert.h>\n#ifdef __cplusplus\nextern \"C\" {\n#endif\nchar ${func}();\n#ifdef __cplusplus\n}\n#endif"
      #   "${func}();" c)
+    CHECK_FUNCTION_EXISTS(
     checkexists(${VARNAME} ${func} ${PETSC_PACKAGE_LIBS})
     if (${${VARNAME}})
         LIST(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
@@ -112,13 +108,31 @@ STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_FUNCS "${PETSCCONF_HAVE_FUNCS}")
 #message(STATUS "Detected available functions: ${PETSCCONF_HAVE_FUNCS}")
 
 # Fortran interfacing
+# Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
+CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
+CHECK_FORTRAN_FUNCTION_EXISTS(get_command_argument PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT)
+CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
 #checkfexists(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT get_command_argument)
 #checkfexists(PETSC_HAVE_FORTRAN_GETARG getarg)
-trycompile(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT "" 
-    "external get_command_argument\n       integer i\n      character*(80) arg\n       call get_command_argument(i,arg)" f90)
-trycompile(PETSC_HAVE_FORTRAN_GETARG "" 
-    "external getarg\n      integer i\n      character*(80) arg\n       call getarg(i,arg)" f90)
+#trycompile(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT "" 
+#    "
+#        external get_command_argument
+#        integer i
+#        character*(80) arg
+#        call get_command_argument(i,arg)
+#    "
+#    f90)
+#trycompile(PETSC_HAVE_FORTRAN_GETARG "" 
+#    "
+#        external getarg
+#        integer i
+#        character*(80) arg
+#        call getarg(i,arg)
+#    "
+#    f90)
 
+########################################################
+# 3rd party packages
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
     SUPERLU SUNDIALS HYPRE SUPERLU_DIST PARMETIS)
@@ -159,7 +173,7 @@ foreach(PACKAGE ${ALLEXT})
     # If found, add definitions to header and information files
     if (PETSC_HAVE_${PACKAGE})
         # petscconfig.h
-        ADD_CONFIG_DEF(${PACKAGE})
+        LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
         
         # petscconfiginfo.h
         STRING(TOLOWER ${PACKAGE} pkgname)
@@ -177,6 +191,7 @@ foreach(PACKAGE ${ALLEXT})
     endif()
 endforeach()
 
+########################################################
 # SSL support
 find_package(OpenSSL QUIET)
 if (OPENSSL_FOUND)
@@ -185,6 +200,7 @@ if (OPENSSL_FOUND)
     SET(PETSC_HAVE_SSL 1)
 endif()
 
+########################################################
 # OpenMP
 if (WITH_OPENMP)
   find_package(OpenMP)

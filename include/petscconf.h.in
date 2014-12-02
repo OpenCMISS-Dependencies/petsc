@@ -7,27 +7,27 @@
 
 @PETSCCONF_HAVE_FUNCS@
 
-#cmakedefine PETSC_HAVE_SSL
+#cmakedefine PETSC_HAVE_SSL 1
 
-#cmakedefine PETSC_HAVE_OPENMP
+#cmakedefine PETSC_HAVE_OPENMP 1
 
-#cmakedefine PETSC_HAVE_VALGRIND
+#cmakedefine PETSC_HAVE_VALGRIND 1
 
-#cmakedefine PETSC_HAVE_PTHREAD
+#cmakedefine PETSC_HAVE_PTHREAD 1
 
-#cmakedefine PETSC_HAVE_PTHREAD_BARRIER_T
+#cmakedefine PETSC_HAVE_PTHREAD_BARRIER_T 1
 
-#cmakedefine PETSC_HAVE_SCHED_CPU_SET_T
+#cmakedefine PETSC_HAVE_SCHED_CPU_SET_T 1
 
-#cmakedefine PETSC_HAVE_SYS_SYSCTL_H
+#cmakedefine PETSC_HAVE_SYS_SYSCTL_H 1
 
-#cmakedefine PETSC_HAVE_GFORTRAN_IARGC
+#cmakedefine PETSC_HAVE_GFORTRAN_IARGC 1
 
-#cmakedefine PETSC_HAVE_X
+#cmakedefine PETSC_HAVE_X 1
 
-#cmakedefine PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT
+#cmakedefine PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT 1
 
-#cmakedefine PETSC_HAVE_FORTRAN_GETARG
+#cmakedefine PETSC_HAVE_FORTRAN_GETARG 1
 
 /* MPI Flags */
 #ifndef PETSC_HAVE_MPI

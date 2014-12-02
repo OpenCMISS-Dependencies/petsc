@@ -1,53 +1,83 @@
-# Tries to compile given source code (of given type) and 
-function(trycompile RES_VAR INCS CODE EXT)
+include(CheckFunctionExists)
+include(CheckFortranFunctionExists)
+
+# Tries to compile given source code (of given type) and uses the currently set compilers (maybe MPI) 
+function(trycompile VARIABLE INCLUDES CODE EXT)
     # This check makes sure the variable is not already in the cache
-    if("${RES_VAR}" MATCHES "^${RES_VAR}$")
-        message(STATUS "Compiling code to check for ${RES_VAR}")
+    if("${VARIABLE}" MATCHES "^${VARIABLE}$")
+        message(STATUS "Compiling code to check for ${VARIABLE}")
         SET(BINDIR ${CMAKE_CURRENT_BINARY_DIR}/trycompile)
         file(MAKE_DIRECTORY ${BINDIR})
         STRING(RANDOM LENGTH 6 SALT)
-        SET(SOURCEFILE ${BINDIR}/trycompile_${RES_VAR}_${SALT}.${EXT})
+        SET(SOURCEFILE ${BINDIR}/trycompile_${VARIABLE}_${SALT}.${EXT})
         if (${EXT} STREQUAL "c" OR ${EXT} STREQUAL "cpp")
-            SET(STUB "@INCS@\nint main(int argc, char **argv) {\n@CODE@\nreturn 0;\n}")
+            SET(STUB "
+                @INCLUDES@
+                #ifdef __CLASSIC_C__
+                int main(){
+                    int argc;
+                    char*argv[];
+                #else
+                int main(int argc, char *argv[]) {
+                #endif
+                    @CODE@
+                    if(argc > 1000) {
+                        return *argv[0];
+                    }
+                    return 0;
+                }
+                "
+                )
+            SET(COMPILER -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
+            if (${EXT} STREQUAL "cpp")
+                SET(COMPILER -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
+            endif()
         elseif(${EXT} STREQUAL "f" OR ${EXT} STREQUAL "f90")
-            SET(STUB "@INCS@\nprogram TESTFortran\n@CODE@\nend program TESTFortran")
+            SET(STUB "
+                @INCLUDES@
+                program TESTFortran
+                    @CODE@
+                end program TESTFortran
+                "
+                )
+            SET(COMPILER -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER})
         else()
             message(FATAL_ERROR "Not implemented: extension '${EXT}'")
         endif()
         file(WRITE ${SOURCEFILE} "${STUB}")
         configure_file(${SOURCEFILE} ${SOURCEFILE} @ONLY)
-        try_compile(${RES_VAR} ${BINDIR}
+        try_compile(${VARIABLE} ${BINDIR}
                 SOURCES ${SOURCEFILE}
+                CMAKE_FLAGS ${COMPILER}
                 ${ARGN})
-        set(${RES_VAR} ${${RES_VAR}} CACHE INTERNAL "Try compile test for ${RES_VAR}")
-        set(${RES_VAR} ${${RES_VAR}} PARENT_SCOPE)
-        message(STATUS "Compiling code to check for ${RES_VAR} .. ${${RES_VAR}}")
+        set(${VARIABLE} ${${VARIABLE}} CACHE INTERNAL "Try compile test for ${VARIABLE}")
+        set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
+        message(STATUS "Compiling code to check for ${VARIABLE} .. ${${VARIABLE}}")
         #file(REMOVE ${SOURCEFILE})
     endif()
 endfunction()
 
-include(CheckFunctionExists)
-function(checkexists RES_VAR FUNC)
+
+function(checkexists VARIABLE FUNC)
     #message(STATUS "Checking if ${FUNC} exists")
     if (${ARGC} GREATER 0 AND NOT "${ARGN}" STREQUAL "")
         #message(STATUS "Looking in extra libraries ${ARGN}")
         SET(CMAKE_REQUIRED_LIBRARIES ${ARGN})
     endif()
-    SET(CMAKE_REQUIRED_DEFINITIONS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
-    CHECK_FUNCTION_EXISTS(${FUNC} ${RES_VAR})
-    set(${RES_VAR} ${${RES_VAR}} PARENT_SCOPE)
+    #SET(CMAKE_REQUIRED_DEFINITIONS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
+    CHECK_FUNCTION_EXISTS(${FUNC} ${VARIABLE})
+    set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
     #message(STATUS "Checking if ${FUNC} exists .. ${RESULT_VAR}")
 endfunction()
 
-include(CheckFortranFunctionExists)
-function(checkfexists RES_VAR FUNC)
+function(checkfexists VARIABLE FUNC)
     #message(STATUS "Checking if Fortran ${FUNC} exists")
     if (${ARGC} GREATER 0 AND NOT ${ARGN} STREQUAL "")
         #message(STATUS "Looking in extra libraries ${ARGN}")
         SET(CMAKE_REQUIRED_LIBRARIES ${ARGN})
     endif()
     SET(CMAKE_REQUIRED_DEFINITIONS -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER})
-    CHECK_FORTRAN_FUNCTION_EXISTS(${FUNC} ${RES_VAR})
-    set(${RES_VAR} ${${RES_VAR}} PARENT_SCOPE)
+    CHECK_FORTRAN_FUNCTION_EXISTS(${FUNC} ${VARIABLE})
+    set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
     #message(STATUS "Checking if ${FUNC} exists .. ${RESULT_VAR}")
 endfunction()
