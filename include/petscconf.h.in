@@ -5,6 +5,8 @@
 
 @PETSCCONF_HAVE_HEADERS@
 
+@PETSCCONF_HAVE_FUNCS@
+
 #cmakedefine PETSC_HAVE_SSL
 
 #cmakedefine PETSC_HAVE_OPENMP
@@ -22,6 +24,10 @@
 #cmakedefine PETSC_HAVE_GFORTRAN_IARGC
 
 #cmakedefine PETSC_HAVE_X
+
+#cmakedefine PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT
+
+#cmakedefine PETSC_HAVE_FORTRAN_GETARG
 
 /* MPI Flags */
 #ifndef PETSC_HAVE_MPI
@@ -408,112 +414,12 @@
 #define PETSC_SIZEOF_SHORT 2
 #endif
 
-#ifndef PETSC_HAVE_STRCASECMP
-#define PETSC_HAVE_STRCASECMP 1
-#endif
-
-#ifndef PETSC_HAVE_GET_NPROCS
-#define PETSC_HAVE_GET_NPROCS 1
-#endif
-
-#ifndef PETSC_HAVE_POPEN
-#define PETSC_HAVE_POPEN 1
-#endif
-
-#ifndef PETSC_HAVE_SIGSET
-#define PETSC_HAVE_SIGSET 1
-#endif
-
-#ifndef PETSC_HAVE_GETWD
-#define PETSC_HAVE_GETWD 1
-#endif
-
 #ifndef PETSC_HAVE_VSNPRINTF
 #define PETSC_HAVE_VSNPRINTF 1
 #endif
 
-#ifndef PETSC_HAVE_TIMES
-#define PETSC_HAVE_TIMES 1
-#endif
-
-#ifndef PETSC_HAVE_DLSYM
-#define PETSC_HAVE_DLSYM 1
-#endif
-
-#ifndef PETSC_HAVE_SNPRINTF
-#define PETSC_HAVE_SNPRINTF 1
-#endif
-
-#ifndef PETSC_HAVE_GETHOSTBYNAME
-#define PETSC_HAVE_GETHOSTBYNAME 1
-#endif
-
-#ifndef PETSC_HAVE_GETCWD
-#define PETSC_HAVE_GETCWD 1
-#endif
-
-#ifndef PETSC_HAVE_DLERROR
-#define PETSC_HAVE_DLERROR 1
-#endif
-
-#ifndef PETSC_HAVE_FORK
-#define PETSC_HAVE_FORK 1
-#endif
-
-#ifndef PETSC_HAVE_RAND
-#define PETSC_HAVE_RAND 1
-#endif
-
-#ifndef PETSC_HAVE_GETTIMEOFDAY
-#define PETSC_HAVE_GETTIMEOFDAY 1
-#endif
-
-#ifndef PETSC_HAVE_DLCLOSE
-#define PETSC_HAVE_DLCLOSE 1
-#endif
-
-#ifndef PETSC_HAVE_UNAME
-#define PETSC_HAVE_UNAME 1
-#endif
-
-#ifndef PETSC_HAVE_GETHOSTNAME
-#define PETSC_HAVE_GETHOSTNAME 1
-#endif
-
-#ifndef PETSC_HAVE_MKSTEMP
-#define PETSC_HAVE_MKSTEMP 1
-#endif
-
-#ifndef PETSC_HAVE_SIGACTION
-#define PETSC_HAVE_SIGACTION 1
-#endif
-
-#ifndef PETSC_HAVE_DRAND48
-#define PETSC_HAVE_DRAND48 1
-#endif
-
-#ifndef PETSC_HAVE_MEMALIGN
-#define PETSC_HAVE_MEMALIGN 1
-#endif
-
 #ifndef PETSC_HAVE_VA_COPY
 #define PETSC_HAVE_VA_COPY 1
-#endif
-
-#ifndef PETSC_HAVE_CLOCK
-#define PETSC_HAVE_CLOCK 1
-#endif
-
-#ifndef PETSC_HAVE_ACCESS
-#define PETSC_HAVE_ACCESS 1
-#endif
-
-#ifndef PETSC_HAVE_SIGNAL
-#define PETSC_HAVE_SIGNAL 1
-#endif
-
-#ifndef PETSC_HAVE_USLEEP
-#define PETSC_HAVE_USLEEP 1
 #endif
 
 #ifndef PETSC_HAVE_GETRUSAGE
@@ -528,56 +434,12 @@
 #define PETSC_HAVE_NANOSLEEP 1
 #endif
 
-#ifndef PETSC_HAVE_GETDOMAINNAME
-#define PETSC_HAVE_GETDOMAINNAME 1
-#endif
-
-#ifndef PETSC_HAVE_TIME
-#define PETSC_HAVE_TIME 1
-#endif
-
-#ifndef PETSC_HAVE_LSEEK
-#define PETSC_HAVE_LSEEK 1
-#endif
-
-#ifndef PETSC_HAVE_SOCKET
-#define PETSC_HAVE_SOCKET 1
-#endif
-
 #ifndef PETSC_HAVE_SYSINFO
 #define PETSC_HAVE_SYSINFO 1
 #endif
 
-#ifndef PETSC_HAVE_READLINK
-#define PETSC_HAVE_READLINK 1
-#endif
-
-#ifndef PETSC_HAVE_REALPATH
-#define PETSC_HAVE_REALPATH 1
-#endif
-
-#ifndef PETSC_HAVE_DLOPEN
-#define PETSC_HAVE_DLOPEN 1
-#endif
-
-#ifndef PETSC_HAVE_MEMMOVE
-#define PETSC_HAVE_MEMMOVE 1
-#endif
-
-#ifndef PETSC_HAVE_GETPAGESIZE
-#define PETSC_HAVE_GETPAGESIZE 1
-#endif
-
-#ifndef PETSC_HAVE_SLEEP
-#define PETSC_HAVE_SLEEP 1
-#endif
-
 #ifndef PETSC_HAVE_VPRINTF
 #define PETSC_HAVE_VPRINTF 1
-#endif
-
-#ifndef PETSC_HAVE_BZERO
-#define PETSC_HAVE_BZERO 1
 #endif
 
 #ifndef PETSC_SIGNAL_CAST
@@ -690,10 +552,6 @@
 
 #ifndef PETSC_USE_GDB_DEBUGGER
 #define PETSC_USE_GDB_DEBUGGER 1
-#endif
-
-#ifndef PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT
-#define PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT 1
 #endif
 
 #ifndef PETSC_MEMALIGN

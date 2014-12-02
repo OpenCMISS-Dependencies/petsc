@@ -59,6 +59,15 @@ endif()
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
 checkexists(PETSC_HAVE_GFORTRAN_IARGC _gfortran_iargc)
 
+# X11
+find_package(X11 QUIET)
+if (X11_FOUND)
+    SET(PETSC_HAVE_X TRUE)
+    LIST(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
+    LIST(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
+endif()
+
+########################################################
 # Header availabilities
 # This list is from config/PETSc/Configure.py
 SET(SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
@@ -79,13 +88,36 @@ endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
 
-# X11
-find_package(X11 QUIET)
-if (X11_FOUND)
-    SET(PETSC_HAVE_X TRUE)
-    LIST(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
-endif()
+########################################################
+# Function availabilities
+SET(SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
+    gettimeofday getwd memalign memmove mkstemp popen PXFGETARG rand getpagesize
+    readlink realpath sigaction signal sigset usleep sleep _sleep socket times
+    gethostbyname uname snprintf _snprintf lseek _lseek time fork stricmp 
+    strcasecmp bzero dlopen dlsym dlclose dlerror get_nprocs sysctlbyname _set_output_format)
+SET(PETSCCONF_HAVE_FUNCS )
+foreach(func ${SEARCHFUNCTIONS})
+    STRING(TOUPPER ${func} FUNC)
+    SET(VARNAME "PETSC_HAVE_${FUNC}")
+    #message(STATUS "Checking for function ${VARNAME}")
+    #trycompile(${VARNAME} 
+    #    "#include <assert.h>\n#ifdef __cplusplus\nextern \"C\" {\n#endif\nchar ${func}();\n#ifdef __cplusplus\n}\n#endif"
+     #   "${func}();" c)
+    checkexists(${VARNAME} ${func} ${PETSC_PACKAGE_LIBS})
+    if (${${VARNAME}})
+        LIST(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
+    endif()
+endforeach()
+STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_FUNCS "${PETSCCONF_HAVE_FUNCS}")
+#message(STATUS "Detected available functions: ${PETSCCONF_HAVE_FUNCS}")
+
+# Fortran interfacing
+#checkfexists(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT get_command_argument)
+#checkfexists(PETSC_HAVE_FORTRAN_GETARG getarg)
+trycompile(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT "" 
+    "external get_command_argument\n       integer i\n      character*(80) arg\n       call get_command_argument(i,arg)" f90)
+trycompile(PETSC_HAVE_FORTRAN_GETARG "" 
+    "external getarg\n      integer i\n      character*(80) arg\n       call getarg(i,arg)" f90)
 
 # Define list of all external packages and their targets (=libraries)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
