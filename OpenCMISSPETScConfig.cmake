@@ -13,6 +13,7 @@ if (UNIX AND NOT APPLE)
 endif()
 
 # MPI
+find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
@@ -22,7 +23,7 @@ find_package(BLAS ${BLAS_VERSION} REQUIRED)
 find_package(LAPACK ${LAPACK_VERSION} REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
 
-# Valgrind - Linux only
+# Valgrind - UNIX only
 SET(PETSC_HAVE_VALGRIND NO)
 if (UNIX)
     find_package(VALGRIND QUIET)
@@ -94,12 +95,10 @@ SET(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
     STRING(TOUPPER ${func} FUNC)
     SET(VARNAME "PETSC_HAVE_${FUNC}")
-    #message(STATUS "Checking for function ${VARNAME}")
     #trycompile(${VARNAME} 
     #    "#include <assert.h>\n#ifdef __cplusplus\nextern \"C\" {\n#endif\nchar ${func}();\n#ifdef __cplusplus\n}\n#endif"
-     #   "${func}();" c)
-    CHECK_FUNCTION_EXISTS(
-    checkexists(${VARNAME} ${func} ${PETSC_PACKAGE_LIBS})
+    #    "${func}();" c)
+    CHECK_FUNCTION_EXISTS(${func} ${VARNAME})
     if (${${VARNAME}})
         LIST(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
     endif()

@@ -6,11 +6,6 @@ option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
 option(USE_THREADS "Use PTHREAD library" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
-find_package(MPI REQUIRED)
-set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-
 include (./OpenCMISSPETScConfig.cmake)
 #message(STATUS "PETSc link libraries: ${PETSC_PACKAGE_LIBS}")
 
