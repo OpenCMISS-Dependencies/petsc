@@ -13,13 +13,23 @@ if (UNIX AND NOT APPLE)
     LIST(APPEND PETSC_PACKAGE_LIBS rt)
 endif()
 
+# Headers/functions lookup lists
+include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
+SET(SEARCHHEADERS )
+SET(SEARCHFUNCTIONS )
+
 # MPI
 find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH})
+LIST(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
+      MPI_Iallreduce MPI_Ibarrier MPI_Finalized MPI_Exscan MPIX_Iallreduce MPI_Win_create MPI_Alltoallw MPI_Type_create_indexed_block)
 
+# LA packages
 find_package(BLAS ${BLAS_VERSION} REQUIRED)
 find_package(LAPACK ${LAPACK_VERSION} REQUIRED)
 SET(PETSC_HAVE_BLASLAPACK YES)
@@ -40,10 +50,12 @@ set (PETSC_HAVE_SOWING NO)
 # Set libraries etc that will be included at link time for function existence tests
 SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
 SET(CMAKE_REQUIRED_INCLUDES ${PETSC_PACKAGE_INCLUDES})
-foreach(FLIB ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
-    SET(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${FLIB}")    
+foreach(FDIR ${PETSC_PACKAGE_INCLUDES})
+    SET(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${FDIR}")
 endforeach()
-include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
+#message(STATUS "Req. includes: ${CMAKE_REQUIRED_INCLUDES}")
+#message(STATUS "Req. libs: ${CMAKE_REQUIRED_LIBRARIES}")
+#message(STATUS "Req. flags: ${CMAKE_REQUIRED_FLAGS}")
 
 # Threads
 if (USE_THREADS)
@@ -53,7 +65,7 @@ if (USE_THREADS)
         LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
         trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
         trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
-        trycompile(PETSC_HAVE_SYS_SYSCTL_H "#include <sys/sysctl.h>" "int a;" c)
+        LIST(APPEND SEARCHHEADERS sys/sysctl) 
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
         SET(PETSC_HAVE_PTHREAD NO)
@@ -63,8 +75,7 @@ endif()
 ########################################################
 # Header availabilities
 # This list is from config/PETSc/Configure.py
-INCLUDE(CheckIncludeFiles)
-SET(SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
+LIST(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
     netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf)
@@ -83,7 +94,7 @@ STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 
 ########################################################
 # Function availabilities
-SET(SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
+LIST(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
     gettimeofday getwd memalign memmove mkstemp popen PXFGETARG rand getpagesize
     readlink realpath sigaction signal sigset usleep sleep _sleep socket times
     gethostbyname uname snprintf _snprintf lseek _lseek time fork stricmp 
@@ -92,16 +103,56 @@ SET(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
     STRING(TOUPPER ${func} FUNC)
     SET(VARNAME "PETSC_HAVE_${FUNC}")
-    #trycompile(${VARNAME} 
-    #    "#include <assert.h>\n#ifdef __cplusplus\nextern \"C\" {\n#endif\nchar ${func}();\n#ifdef __cplusplus\n}\n#endif"
-    #    "${func}();" c)
     CHECK_FUNCTION_EXISTS(${func} ${VARNAME})
     if (${${VARNAME}})
         LIST(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
     endif()
 endforeach()
+# MPI extras - see Buildsystem/config/packages/MPI.py lines 781 ff
+if (PETSC_HAVE_MPI)
+    if (PETSC_HAVE_MPI_WIN_CREATE)
+        SET(PETSC_HAVE_MPI_REPLACE 1)
+    endif()
+    if (NOT PETSC_HAVE_MPI_TYPE_CREATE_INDEXED_BLOCK)
+        SET(PETSC_HAVE_MPI_ALLTOALLW NO)
+    endif()
+    CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_set PETSC_HAVE_MPICH_CH3_SOCK)
+    CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_fixed_nbc_progress PETSC_HAVE_MPICH_CH3_SOCK_FIXED_NBC_PROGRESS)
+    trycompile(PETSC_HAVE_MPI_COMBINER_DUP "#include <mpi.h>" "int combiner = MPI_COMBINER_DUP;" c)
+    trycompile(PETSC_HAVE_MPI_COMBINER_CONTIGUOUS "#include <mpi.h>" "int combiner = MPI_COMBINER_CONTIGUOUS;" c)
+    trycompile(PETSC_HAVE_MPI_COMM_F2C "#include <mpi.h>" "if (MPI_Comm_f2c((MPI_Fint)0));" c)
+    trycompile(PETSC_HAVE_MPI_COMM_C2F "#include <mpi.h>" "if (MPI_Comm_c2f(MPI_COMM_WORLD));" c)
+    trycompile(PETSC_HAVE_MPI_FINT "#include <mpi.h>" "MPI_Fint a;" c)
+    trycompile(PETSC_HAVE_MPI_IN_PLACE "#include <mpi.h>" "if (MPI_Allreduce(MPI_IN_PLACE,0, 1, MPI_INT, MPI_SUM, MPI_COMM_SELF));" c)
+    # Data types
+    foreach(MPI_DATATYPE MPI_LONG_DOUBLE MPI_INT64_T MPI_C_DOUBLE_COMPLEX)
+        trycompile(PETSC_HAVE_${MPI_DATATYPE} 
+            "#ifdef PETSC_HAVE_STDLIB_H\n  #include <stdlib.h>\n#endif\n#include <mpi.h>\n"
+            "MPI_Aint size;\nint ierr;\nMPI_Init(0,0);\nierr = MPI_Type_extent(${MPI_DATATYPE}, &size);\nif(ierr || (size == 0)) exit(1);\nMPI_Finalize();\n" c)
+        if (PETSC_HAVE_${MPI_DATATYPE})
+            LIST(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
+        endif()
+    endforeach()
+endif()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_FUNCS "${PETSCCONF_HAVE_FUNCS}")
 #message(STATUS "Detected available functions: ${PETSCCONF_HAVE_FUNCS}")
+
+# MPI-IO      
+SET(_MPIIO_CODELIST "MPI_Aint lb, extent\;\nif (MPI_Type_get_extent(MPI_INT, &lb, &extent))\;\n"
+    "MPI_File fh\;\nvoid *buf\;\nMPI_Status status\;\nif (MPI_File_write_all(fh, buf, 1, MPI_INT, &status))\;\n"
+    "MPI_File fh\;\nvoid *buf\;\nMPI_Status status\;\nif (MPI_File_read_all(fh, buf, 1, MPI_INT, &status))\;\n"
+    "MPI_File fh\;\nMPI_Offset disp\;\nMPI_Info info\;\nif (MPI_File_set_view(fh, disp, MPI_INT, MPI_INT, \"\", info))\;\n"
+    "MPI_File fh\;\nMPI_Info info\;\nif (MPI_File_open(MPI_COMM_SELF, \"\", 0, info, &fh))\;\n"
+    "MPI_File fh\;\nMPI_Info info\;\nif (MPI_File_close(&fh))\;\n")
+SET(PETSC_HAVE_MPIIO YES)
+foreach(_IDX RANGE 0 5)
+    LIST(GET _MPIIO_CODELIST ${_IDX} _MPIIOCODE)
+    trycompile(MPIIOCHECK${_IDX} "#include <mpi.h>" "${_MPIIOCODE}" c)
+    if (NOT MPIIOCHECK${_IDX})
+        SET(PETSC_HAVE_MPIIO NO)
+        #break()
+    endif()
+endforeach()
 
 # Fortran interfacing
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)

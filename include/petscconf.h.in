@@ -19,8 +19,6 @@
 
 #cmakedefine PETSC_HAVE_SCHED_CPU_SET_T 1
 
-#cmakedefine PETSC_HAVE_SYS_SYSCTL_H 1
-
 #cmakedefine PETSC_HAVE_GFORTRAN_IARGC 1
 
 #cmakedefine PETSC_HAVE_X 1
@@ -29,12 +27,26 @@
 
 #cmakedefine PETSC_HAVE_FORTRAN_GETARG 1
 
-/* MPI Flags */
-#ifndef PETSC_HAVE_MPI
-#define PETSC_HAVE_MPI 1
-#endif
+/* MPI Flags
+ * All others are included in PETSCCONF_HAVE_FUNCS above
+ */
+ 
+#define PETSC_HAVE_MPI_F90MODULE 1
 
-/* Not required or used anywhere in the source code
+#cmakedefine PETSC_HAVE_MPICH_CH3_SOCK 1
+
+#cmakedefine PETSC_HAVE_MPICH_CH3_SOCK_FIXED_NBC_PROGRESS 1
+
+#cmakedefine PETSC_HAVE_MPI 1
+
+#cmakedefine PETSC_HAVE_MPI_COMBINER_DUP 1
+
+#cmakedefine PETSC_HAVE_MPI_COMBINER_CONTIGUOUS 1
+
+#cmakedefine PETSC_HAVE_MPI_REPLACE 1
+
+#cmakedefine PETSC_HAVE_MPI_ALLTOALLW 1
+
 #ifndef PETSC_SIZEOF_MPI_COMM
 #define PETSC_SIZEOF_MPI_COMM 4
 #endif
@@ -43,90 +55,15 @@
 #define PETSC_SIZEOF_MPI_FINT 4
 #endif
 
-#ifndef PETSC_HAVE_MPI_COMM_C2F
-#define PETSC_HAVE_MPI_COMM_C2F 1
-#endif
+#cmakedefine PETSC_HAVE_MPI_COMM_C2F 1
 
-#ifndef PETSC_HAVE_MPI_COMM_F2C
-#define PETSC_HAVE_MPI_COMM_F2C 1
-#endif
+#cmakedefine PETSC_HAVE_MPI_COMM_F2C 1
 
-#ifndef PETSC_HAVE_MPI_FINT
-#define PETSC_HAVE_MPI_FINT 1
-#endif
+#cmakedefine PETSC_HAVE_MPI_FINT 1
 
-#ifndef PETSC_HAVE_MPI_COMM_SPAWN
-#define PETSC_HAVE_MPI_COMM_SPAWN 1
-#endif
+#cmakedefine PETSC_HAVE_MPIIO 1
 
-#ifndef PETSC_HAVE_MPI_EXSCAN
-#define PETSC_HAVE_MPI_EXSCAN 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_TYPE_GET_EXTENT
-#define PETSC_HAVE_MPI_TYPE_GET_EXTENT 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_REPLACE
-#define PETSC_HAVE_MPI_REPLACE 1
-#endif
-*/
-
-#ifndef PETSC_HAVE_MPI_COMBINER_CONTIGUOUS
-#define PETSC_HAVE_MPI_COMBINER_CONTIGUOUS 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_INIT_THREAD
-#define PETSC_HAVE_MPI_INIT_THREAD 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_LONG_DOUBLE
-#define PETSC_HAVE_MPI_LONG_DOUBLE 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_F90MODULE
-#define PETSC_HAVE_MPI_F90MODULE 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_TYPE_GET_ENVELOPE
-#define PETSC_HAVE_MPI_TYPE_GET_ENVELOPE 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_ALLTOALLW
-#define PETSC_HAVE_MPI_ALLTOALLW 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_FINALIZED
-#define PETSC_HAVE_MPI_FINALIZED 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_COMBINER_DUP
-#define PETSC_HAVE_MPI_COMBINER_DUP 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_WIN_CREATE
-#define PETSC_HAVE_MPI_WIN_CREATE 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_TYPE_DUP
-#define PETSC_HAVE_MPI_TYPE_DUP 1
-#endif
-
-#ifndef PETSC_HAVE_MPIIO
-#define PETSC_HAVE_MPIIO 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_C_DOUBLE_COMPLEX
-#define PETSC_HAVE_MPI_C_DOUBLE_COMPLEX 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_INT64_T
-#define PETSC_HAVE_MPI_INT64_T 1
-#endif
-
-#ifndef PETSC_HAVE_MPI_IN_PLACE
-#define PETSC_HAVE_MPI_IN_PLACE 1
-#endif
+#cmakedefine PETSC_HAVE_MPI_IN_PLACE 1
 
 /* MISC */
 
