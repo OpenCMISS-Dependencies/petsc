@@ -2,6 +2,7 @@ include/petscconf.h
 include/petscconfiginfo.h
 include/petscfix.h
 include/petscmachineinfo.h
+ftn-auto/
 *.testout
 build/
 *.bkp
