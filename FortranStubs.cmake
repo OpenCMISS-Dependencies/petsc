@@ -5,7 +5,7 @@ SET(bfort_opts -mnative -ansi -nomsgs -noprofile -anyname -mapptr -mpi -mpi2 -fe
 SET(EXCLUDE_DIRS SCCS output BitKeeper examples externalpackages bilinear
     ftn-auto fortran bin maint ftn-custom config f90-custom ftn-kernels
     finclude)
-function(RECURSE curdir)
+function(FTNGEN_RECURSE curdir)
     #message(STATUS "Entering ${curdir}")
     file(GLOB content RELATIVE ${curdir} ${curdir}/*)
     SET(sources )
@@ -14,7 +14,7 @@ function(RECURSE curdir)
         if(IS_DIRECTORY ${filename})
             list(FIND EXCLUDE_DIRS ${entry} EXCLUDE_ME)
             if (EXCLUDE_ME EQUAL -1)
-                RECURSE(${filename})
+                FTNGEN_RECURSE(${filename})
             endif()
         else()
             get_filename_component(fext ${filename} EXT)
@@ -28,13 +28,15 @@ endfunction()
 
 function(FTNGEN_PROCESS DIRNAME SOURCE FEXT)
     SET(OUTDIR ${DIRNAME}/ftn-auto)
+    if (NOT EXISTS ${OUTDIR})
+        file(MAKE_DIRECTORY ${OUTDIR})
+    endif() 
     get_filename_component(namewe ${filename} NAME_WE)
     SET(OUTFILE ${OUTDIR}/${namewe}f${FEXT})
-    #message(STATUS "---> OUTPUT ${OUTFILE} COMMAND bfort -dir ${OUTDIR} ${bfort_opts} ${SOURCE}\n${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/FortranStubsHelper.cmake -DFILE=${OUTFILE}")
     add_custom_command(OUTPUT ${OUTFILE}
         COMMAND bfort -dir ${OUTDIR} ${bfort_opts} ${SOURCE}
         COMMAND ${CMAKE_COMMAND} -DFILE=${OUTFILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/FortranStubsHelper.cmake
     )
 endfunction()
 
-RECURSE(${CMAKE_CURRENT_SOURCE_DIR})
+FTNGEN_RECURSE(${CMAKE_CURRENT_SOURCE_DIR})
