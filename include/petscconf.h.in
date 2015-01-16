@@ -67,6 +67,10 @@
 
 /* MISC */
 
+/* Fortran */
+#cmakedefine PETSC_HAVE_FORTRAN_UNDERSCORE 1
+#cmakedefine PETSC_HAVE_FORTRAN_CAPS 1
+
 #ifndef IS_COLORING_MAX
 #define IS_COLORING_MAX 65535
 #endif
@@ -237,10 +241,6 @@
 
 #ifndef PETSC_C_STATIC_INLINE
 #define PETSC_C_STATIC_INLINE static inline
-#endif
-
-#ifndef PETSC_HAVE_FORTRAN_UNDERSCORE
-#define PETSC_HAVE_FORTRAN_UNDERSCORE 1
 #endif
 
 #ifndef PETSC_HAVE_CXX_NAMESPACE

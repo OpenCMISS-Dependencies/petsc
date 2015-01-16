@@ -7,6 +7,7 @@ option(USE_THREADS "Use PTHREAD library" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
 include (./OpenCMISSPETScConfig.cmake)
+include (./FortranStubs.cmake)
 #message(STATUS "PETSc link libraries: ${PETSC_PACKAGE_LIBS}")
 
 # Configure the build-dependent header files

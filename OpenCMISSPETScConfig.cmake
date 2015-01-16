@@ -3,6 +3,8 @@ include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
+option(FORTRAN_MANGLING "${PROJECT_NAME} - Fortran mangling scheme (default Add_)" Add_)
+
 # Setup the fortran libraries to be available for function checking as well
 LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 LIST(APPEND PETSC_PACKAGE_INCLUDES ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
@@ -44,7 +46,7 @@ if (UNIX)
         LIST(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
     endif()
 endif()
-# Sowing: Only for docs creation. Not needed with dependencies
+# Sowing: Only for ftn-auto generation through bfort. Not needed with dependencies
 set (PETSC_HAVE_SOWING NO)
 
 # Set libraries etc that will be included at link time for function existence tests
@@ -154,29 +156,17 @@ foreach(_IDX RANGE 0 5)
     endif()
 endforeach()
 
-# Fortran interfacing
+########################################################
+# Fortran interfacing - option above [and passed in as def by opencmiss]
+if (FORTRAN_MANGLING STREQUAL Add_)
+    SET(PETSC_HAVE_FORTRAN_UNDERSCORE YES)
+elseif(FORTRAN_MANGLING STREQUAL UpCase)
+    SET(PETSC_HAVE_FORTRAN_CAPS YES)
+endif()
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
 CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
 CHECK_FORTRAN_FUNCTION_EXISTS(get_command_argument PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT)
 CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
-#checkfexists(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT get_command_argument)
-#checkfexists(PETSC_HAVE_FORTRAN_GETARG getarg)
-#trycompile(PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT "" 
-#    "
-#        external get_command_argument
-#        integer i
-#        character*(80) arg
-#        call get_command_argument(i,arg)
-#    "
-#    f90)
-#trycompile(PETSC_HAVE_FORTRAN_GETARG "" 
-#    "
-#        external getarg
-#        integer i
-#        character*(80) arg
-#        call getarg(i,arg)
-#    "
-#    f90)
 
 ########################################################
 # 3rd party packages
