@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
+option(PACKAGE_CONFIG_DIR "Directory for package config files (relative to CMAKE_INSTALL_PREFIX)" "lib/cmake")
 option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
 option(USE_THREADS "Use PTHREAD library" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
@@ -1837,7 +1838,7 @@ install(DIRECTORY include/ DESTINATION include/petsc
 install(DIRECTORY ${PETSc_BINARY_DIR}/include/
     DESTINATION include/petsc
     FILES_MATCHING PATTERN "*.h")   
-install(EXPORT petsc-config DESTINATION lib/cmake)
+install(EXPORT petsc-config DESTINATION ${PACKAGE_CONFIG_DIR})
 include(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/petsc-config-version.cmake COMPATIBILITY AnyNewerVersion)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-version.cmake
