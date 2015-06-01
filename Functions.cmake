@@ -3,6 +3,7 @@ include(CheckFortranFunctionExists)
 include(CheckCSourceCompiles)
 include(CheckFortranSourceCompiles)
 INCLUDE(CheckIncludeFiles)
+include(CheckSymbolExists)
 
 # Tries to compile given source code (of given type) and uses the currently set compilers (maybe MPI) 
 function(trycompile VARIABLE INCLUDES CODE EXT)

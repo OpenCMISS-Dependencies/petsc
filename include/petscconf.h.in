@@ -7,6 +7,8 @@
 
 @PETSCCONF_HAVE_FUNCS@
 
+@PETSCCONF_HAVE_SIGNAL@
+
 #cmakedefine PETSC_HAVE_SSL 1
 
 #cmakedefine PETSC_HAVE_OPENMP 1
@@ -31,7 +33,7 @@
  * All others are included in PETSCCONF_HAVE_FUNCS above
  */
  
-#define PETSC_HAVE_MPI_F90MODULE 1
+#cmakedefine PETSC_HAVE_MPI_F90MODULE 1
 
 #cmakedefine PETSC_HAVE_MPICH_CH3_SOCK 1
 
@@ -66,6 +68,21 @@
 #cmakedefine PETSC_HAVE_MPI_IN_PLACE 1
 
 /* MISC */
+
+#cmakedefine PETSC_HAVE_XMMINTRIN_H 1
+
+#cmakedefine PETSC_HAVE_UID_T 1
+#cmakedefine PETSC_HAVE_GID_T 1
+#if !defined(PETSC_HAVE_UID_T)
+#define uid_t int
+#endif
+#if !defined(PETSC_HAVE_GID_T)
+#define gid_t int
+#endif
+
+#cmakedefine PETSC_HAVE_SIGINFO_T 1
+
+#cmakedefine PETSC_HAVE___INT64 1
 
 /* Fortran */
 #cmakedefine PETSC_HAVE_FORTRAN_UNDERSCORE 1
@@ -177,10 +194,6 @@
 
 #ifndef PETSC_PATH_SEPARATOR
 #define PETSC_PATH_SEPARATOR ':'
-#endif
-
-#ifndef PETSC_HAVE_XMMINTRIN_H
-#define PETSC_HAVE_XMMINTRIN_H 1
 #endif
 
 #ifndef PETSC_PREFETCH_HINT_NTA
@@ -317,10 +330,6 @@
 
 #ifndef PETSC_SIZEOF_SIZE_T
 #define PETSC_SIZEOF_SIZE_T 8
-#endif
-
-#ifndef PETSC_HAVE_SIGINFO_T
-#define PETSC_HAVE_SIGINFO_T 1
 #endif
 
 #ifndef PETSC_SIZEOF_CHAR

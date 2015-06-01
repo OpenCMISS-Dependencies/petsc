@@ -23,9 +23,16 @@ SET(SEARCHFUNCTIONS )
 # MPI
 find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
-set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+if (MPI_C_COMPILER)
+    set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+endif()
+if (MPI_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif()
+if (MPI_Fortran_COMPILER)
+    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+endif()
+
 LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH} ${MPI_Fortran_INCLUDE_PATH})
 LIST(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
@@ -47,9 +54,10 @@ if (UNIX)
     endif()
 endif()
 # Sowing: Only for ftn-auto generation through bfort. Not needed with dependencies
-set (PETSC_HAVE_SOWING NO)
+set(PETSC_HAVE_SOWING NO)
 
 # Set libraries etc that will be included at link time for function existence tests
+#message(STATUS "PETSC Include dirs: ${PETSC_PACKAGE_INCLUDES}")#\nInclude Libraries: ${PETSC_PACKAGE_LIBS}
 SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
 SET(CMAKE_REQUIRED_INCLUDES ${PETSC_PACKAGE_INCLUDES})
 foreach(FDIR ${PETSC_PACKAGE_INCLUDES})
@@ -65,8 +73,10 @@ if (USE_THREADS)
     if (Threads_FOUND)
         SET(PETSC_HAVE_PTHREAD YES)
         LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
-        trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
-        trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
+        CHECK_SYMBOL_EXISTS(pthread_barrier_t pthread.h PETSC_HAVE_PTHREAD_BARRIER_T)
+        #trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
+        CHECK_SYMBOL_EXISTS(cpu_set_t sched.h PETSC_HAVE_SCHED_CPU_SET_T)
+        #trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
         LIST(APPEND SEARCHHEADERS sys/sysctl) 
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
@@ -80,7 +90,8 @@ endif()
 LIST(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
-    netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf)
+    netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf
+    xmmintrin signal)
 SET(PETSCCONF_HAVE_HEADERS )
 foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
@@ -93,6 +104,43 @@ foreach(hdr ${SEARCHHEADERS})
 endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
+
+# check availability of uid_t and gid_t
+if (PETSC_HAVE_SYS_TYPES_H)
+    CHECK_SYMBOL_EXISTS(uid_t "sys/types.h" PETSC_HAVE_UID_T)
+    CHECK_SYMBOL_EXISTS(gid_t "sys/types.h" PETSC_HAVE_GID_T)
+endif()
+
+# __SSE__
+CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
+if (MINGW AND NOT PETSC_HAVE_SSE)
+    set(PETSC_HAVE_XMMINTRIN_H NO)
+endif()
+
+########################################################
+# Signal availabilities
+set(SEARCHSIGNALS ABRT ALRM BUS CHLD CONT FPE HUP ILL INT KILL PIPE QUIT SEGV
+    STOP SYS TERM TRAP TSTP URG USR1 USR2)
+SET(PETSCCONF_HAVE_SIGNAL )
+foreach(sig ${SEARCHSIGNALS})
+    SET(VARNAME "MISSING_SIG${sig}")
+    if (PETSC_HAVE_SIGNAL_H)
+        CHECK_SYMBOL_EXISTS("SIG${sig}" "signal.h" ${VARNAME})
+    endif()
+    if (${${VARNAME}})
+        LIST(APPEND PETSCCONF_HAVE_SIGNAL "#define ${VARNAME} 1")
+    endif()
+endforeach()
+STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_SIGNAL "${PETSCCONF_HAVE_SIGNAL}")
+#message(STATUS "Detected available headers: ${PETSCCONF_HAVE_SIGNAL}")
+if (PETSC_HAVE_SIGNAL_H)
+    CHECK_SYMBOL_EXISTS(siginfo_t "signal.h" PETSC_HAVE_SIGINFO_T)
+endif()
+
+########################################################
+# Symbol availabilities
+CHECK_SYMBOL_EXISTS(__int64 "" PETSC_HAVE___INT64)
+
 
 ########################################################
 # Function availabilities
@@ -120,17 +168,31 @@ if (PETSC_HAVE_MPI)
     endif()
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_set PETSC_HAVE_MPICH_CH3_SOCK)
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_fixed_nbc_progress PETSC_HAVE_MPICH_CH3_SOCK_FIXED_NBC_PROGRESS)
+    
+    # The CheckSymbolExists wont find enum types - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
+    #CHECK_SYMBOL_EXISTS(MPI_COMBINER_DUP mpi.h PETSC_HAVE_MPI_COMBINER_DUP)
     trycompile(PETSC_HAVE_MPI_COMBINER_DUP "#include <mpi.h>" "int combiner = MPI_COMBINER_DUP;" c)
+    #CHECK_SYMBOL_EXISTS(MPI_COMBINER_CONTIGUOUS mpi.h PETSC_HAVE_MPI_COMBINER_CONTIGUOUS)
     trycompile(PETSC_HAVE_MPI_COMBINER_CONTIGUOUS "#include <mpi.h>" "int combiner = MPI_COMBINER_CONTIGUOUS;" c)
-    trycompile(PETSC_HAVE_MPI_COMM_F2C "#include <mpi.h>" "if (MPI_Comm_f2c((MPI_Fint)0));" c)
-    trycompile(PETSC_HAVE_MPI_COMM_C2F "#include <mpi.h>" "if (MPI_Comm_c2f(MPI_COMM_WORLD));" c)
+    
+    CHECK_SYMBOL_EXISTS(MPI_Comm_f2c mpi.h PETSC_HAVE_MPI_COMM_F2C)
+    #trycompile(PETSC_HAVE_MPI_COMM_F2C "#include <mpi.h>" "if (MPI_Comm_f2c((MPI_Fint)0));" c)
+    
+    CHECK_SYMBOL_EXISTS(MPI_Comm_c2f mpi.h PETSC_HAVE_MPI_COMM_C2F)
+    #trycompile(PETSC_HAVE_MPI_COMM_C2F "#include <mpi.h>" "if (MPI_Comm_c2f(MPI_COMM_WORLD));" c)
+    
+    # MPI_Fint is a typedef - - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
+    #CHECK_SYMBOL_EXISTS(MPI_Fint mpi.h PETSC_HAVE_MPI_FINT)
     trycompile(PETSC_HAVE_MPI_FINT "#include <mpi.h>" "MPI_Fint a;" c)
-    trycompile(PETSC_HAVE_MPI_IN_PLACE "#include <mpi.h>" "if (MPI_Allreduce(MPI_IN_PLACE,0, 1, MPI_INT, MPI_SUM, MPI_COMM_SELF));" c)
+    
+    CHECK_SYMBOL_EXISTS(MPI_IN_PLACE mpi.h PETSC_HAVE_MPI_IN_PLACE)
+    
     # Data types
     foreach(MPI_DATATYPE MPI_LONG_DOUBLE MPI_INT64_T MPI_C_DOUBLE_COMPLEX)
-        trycompile(PETSC_HAVE_${MPI_DATATYPE} 
-            "#ifdef PETSC_HAVE_STDLIB_H\n  #include <stdlib.h>\n#endif\n#include <mpi.h>\n"
-            "MPI_Aint size;\nint ierr;\nMPI_Init(0,0);\nierr = MPI_Type_extent(${MPI_DATATYPE}, &size);\nif(ierr || (size == 0)) exit(1);\nMPI_Finalize();\n" c)
+        #trycompile(PETSC_HAVE_${MPI_DATATYPE} 
+        #    "#ifdef PETSC_HAVE_STDLIB_H\n  #include <stdlib.h>\n#endif\n#include <mpi.h>\n"
+        #    "MPI_Aint size;\nint ierr;\nMPI_Init(0,0);\nierr = MPI_Type_extent(${MPI_DATATYPE}, &size);\nif(ierr || (size == 0)) exit(1);\nMPI_Finalize();\n" c)
+        CHECK_SYMBOL_EXISTS(${MPI_DATATYPE} mpi.h PETSC_HAVE_${MPI_DATATYPE})
         if (PETSC_HAVE_${MPI_DATATYPE})
             LIST(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
         endif()
@@ -152,7 +214,6 @@ foreach(_IDX RANGE 0 5)
     trycompile(MPIIOCHECK${_IDX} "#include <mpi.h>" "${_MPIIOCODE}" c)
     if (NOT MPIIOCHECK${_IDX})
         SET(PETSC_HAVE_MPIIO NO)
-        #break()
     endif()
 endforeach()
 
@@ -171,6 +232,10 @@ CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
 ########################################################
 # 3rd party packages
 # Define list of all external packages and their targets (=libraries)
+#
+# This should ideally be contained somehow in the exported config files, but as it isnt we need
+# to manually say which targets are defined in which package (which is knowledge that should be available
+# also in this local context as we're consuming all of those packages here)
 SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
     SUPERLU SUNDIALS HYPRE SUPERLU_DIST PARMETIS)
 SET(PARMETIS_TARGETS parmetis metis)
