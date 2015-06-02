@@ -97,7 +97,7 @@ LIST(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
     netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf
-    xmmintrin signal dlfcn linux_header math sys/time fenv Winsock2)
+    signal dlfcn linux_header math sys/time fenv Winsock2)
 SET(PETSCCONF_HAVE_HEADERS )
 foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
@@ -112,9 +112,14 @@ STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
 
 # check availability of uid_t and gid_t
-if (PETSC_HAVE_SYS_TYPES_H)
-    CHECK_SYMBOL_EXISTS(uid_t "sys/types.h" PETSC_HAVE_UID_T)
-    CHECK_SYMBOL_EXISTS(gid_t "sys/types.h" PETSC_HAVE_GID_T)
+if (MINGW)
+    if (PETSC_HAVE_UNISTD_H)
+        CHECK_SYMBOL_EXISTS(uid_t "unistd.h" PETSC_HAVE_UID_T)
+        CHECK_SYMBOL_EXISTS(gid_t "unistd.h" PETSC_HAVE_GID_T)
+    elseif (PETSC_HAVE_SYS_TYPES_H)
+        CHECK_SYMBOL_EXISTS(uid_t "sys/types.h" PETSC_HAVE_UID_T)
+        CHECK_SYMBOL_EXISTS(gid_t "sys/types.h" PETSC_HAVE_GID_T)
+    endif()
 endif()
 
 # __SSE__
@@ -237,6 +242,41 @@ endif()
 CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
 CHECK_FORTRAN_FUNCTION_EXISTS(get_command_argument PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT)
 CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
+
+########################################################
+# Prefetch config
+set(PETSC_Prefetch_VAL "")
+set(PETSC_Prefetch_KEY "PETSC_Prefetch(a,b,c)")
+if (NOT SOLARIS AND NOT APPLE)
+    trycompile(PREFETCH_STAGE_1 "#include <xmmintrin.h>" "void *v = 0;_mm_prefetch((const char*)v,_MM_HINT_NTA);" c)
+    if (PREFETCH_STAGE_1)
+        set(PETSC_HAVE_XMMINTRIN_H YES)
+        set(PETSC_Prefetch_VAL "_mm_prefetch((const char*)(a),(c))")
+        set(PETSC_PREFETCH_HINT_NTA _MM_HINT_NTA)
+        set(PETSC_PREFETCH_HINT_T0 _MM_HINT_T0)
+        set(PETSC_PREFETCH_HINT_T1 _MM_HINT_T1)
+        set(PETSC_PREFETCH_HINT_T2 _MM_HINT_T2)
+    else()
+        trycompile(PREFETCH_STAGE_2 "#include <xmmintrin.h>" "void *v = 0;_mm_prefetch(v,_MM_HINT_NTA);" c)
+        if (PREFETCH_STAGE_2)
+            set(PETSC_HAVE_XMMINTRIN_H YES)
+            set(PETSC_Prefetch_VAL "_mm_prefetch((const void*)(a),(c))")
+            set(PETSC_PREFETCH_HINT_NTA _MM_HINT_NTA)
+            set(PETSC_PREFETCH_HINT_T0 _MM_HINT_T0)
+            set(PETSC_PREFETCH_HINT_T1 _MM_HINT_T1)
+            set(PETSC_PREFETCH_HINT_T2 _MM_HINT_T2)
+        else()
+            trycompile(PREFETCH_STAGE_3 "" "void *v = 0;__builtin_prefetch(v,0,0);" c)
+            if (PREFETCH_STAGE_3)
+                set(PETSC_Prefetch_VAL "__builtin_prefetch((a),(b),(c))")
+                set(PETSC_PREFETCH_HINT_NTA 0)
+                set(PETSC_PREFETCH_HINT_T0 3)
+                set(PETSC_PREFETCH_HINT_T1 2)
+                set(PETSC_PREFETCH_HINT_T2 1)
+            endif()
+        endif()
+    endif()
+endif()
 
 ########################################################
 # 3rd party packages
