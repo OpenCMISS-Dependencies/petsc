@@ -4,6 +4,7 @@ include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 # Fixed settings
 SET(PETSC_HAVE_FORTRAN YES)
 option(FORTRAN_MANGLING "${PROJECT_NAME} - Fortran mangling scheme (default Add_)" Add_)
+option(PETSC_USE_DEBUG "${PROJECT_NAME} - Build with DEBUG information" NO)
 
 # Setup the fortran libraries to be available for function checking as well
 LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
@@ -56,6 +57,11 @@ endif()
 # Sowing: Only for ftn-auto generation through bfort. Not needed with dependencies
 set(PETSC_HAVE_SOWING NO)
 
+# Socket stuff (missing.py:65)
+if (WIN32)
+    list(APPEND PETSC_PACKAGE_LIBS Ws2_32)
+endif()
+
 # Set libraries etc that will be included at link time for function existence tests
 #message(STATUS "PETSC Include dirs: ${PETSC_PACKAGE_INCLUDES}")#\nInclude Libraries: ${PETSC_PACKAGE_LIBS}
 SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
@@ -91,7 +97,7 @@ LIST(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
     netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf
-    xmmintrin signal)
+    xmmintrin signal dlfcn linux_header math sys/time fenv Winsock2)
 SET(PETSCCONF_HAVE_HEADERS )
 foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
@@ -123,12 +129,11 @@ set(SEARCHSIGNALS ABRT ALRM BUS CHLD CONT FPE HUP ILL INT KILL PIPE QUIT SEGV
     STOP SYS TERM TRAP TSTP URG USR1 USR2)
 SET(PETSCCONF_HAVE_SIGNAL )
 foreach(sig ${SEARCHSIGNALS})
-    SET(VARNAME "MISSING_SIG${sig}")
     if (PETSC_HAVE_SIGNAL_H)
-        CHECK_SYMBOL_EXISTS("SIG${sig}" "signal.h" ${VARNAME})
+        CHECK_SYMBOL_EXISTS("SIG${sig}" "signal.h" PETSC_HAVE_SIG${sig})
     endif()
-    if (${${VARNAME}})
-        LIST(APPEND PETSCCONF_HAVE_SIGNAL "#define ${VARNAME} 1")
+    if (NOT PETSC_HAVE_SIG${sig})
+        LIST(APPEND PETSCCONF_HAVE_SIGNAL "#define PETSC_MISSING_SIG${sig} 1")
     endif()
 endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_SIGNAL "${PETSCCONF_HAVE_SIGNAL}")
@@ -140,7 +145,9 @@ endif()
 ########################################################
 # Symbol availabilities
 CHECK_SYMBOL_EXISTS(__int64 "" PETSC_HAVE___INT64)
-
+if (PETSC_HAVE_WINSOCK2_H)
+    CHECK_SYMBOL_EXISTS(socklen_t "Winsock2.h" PETSC_HAVE_SOCKLEN_T)
+endif()
 
 ########################################################
 # Function availabilities
@@ -148,7 +155,9 @@ LIST(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     gettimeofday getwd memalign memmove mkstemp popen PXFGETARG rand getpagesize
     readlink realpath sigaction signal sigset usleep sleep _sleep socket times
     gethostbyname uname snprintf _snprintf lseek _lseek time fork stricmp 
-    strcasecmp bzero dlopen dlsym dlclose dlerror get_nprocs sysctlbyname _set_output_format)
+    strcasecmp bzero dlopen dlsym dlclose dlerror get_nprocs sysctlbyname _set_output_format
+    closesocket WSAGetLastError # from missing.py:65 / socket stuff
+)
 SET(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
     STRING(TOUPPER ${func} FUNC)
