@@ -40,6 +40,9 @@ typedef unsigned long   u_long;
 #if defined(PETSC_HAVE_WINSOCK2_H)
 #include <Winsock2.h>
 #endif
+#if defined(PETSC_HAVE_WS2TCPIP_H)
+#include <Ws2tcpip.h>
+#endif
 #include <sys/stat.h>
 #include <../src/sys/classes/viewer/impls/socket/socket.h>
 

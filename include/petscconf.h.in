@@ -89,10 +89,6 @@
 /* Socket stuff */
 #cmakedefine PETSC_HAVE_CLOSESOCKET 1
 #cmakedefine PETSC_HAVE_WSAGETLASTERROR 1
-#cmakedefine PETSC_HAVE_SOCKLEN_T 1
-#if !defined(PETSC_HAVE_SOCKLEN_T)
-	typedef int socklen_t;
-#endif
 
 /* Fortran */
 #cmakedefine PETSC_HAVE_FORTRAN_UNDERSCORE 1
