@@ -69,8 +69,7 @@
 
 /* MISC */
 
-#cmakedefine PETSC_HAVE_XMMINTRIN_H 1
-
+#ifdef __MINGW32__
 #cmakedefine PETSC_HAVE_UID_T 1
 #cmakedefine PETSC_HAVE_GID_T 1
 #if !defined(PETSC_HAVE_UID_T)
@@ -78,6 +77,7 @@
 #endif
 #if !defined(PETSC_HAVE_GID_T)
 #define gid_t int
+#endif
 #endif
 
 #cmakedefine PETSC_HAVE_SIGINFO_T 1
@@ -89,6 +89,22 @@
 /* Socket stuff */
 #cmakedefine PETSC_HAVE_CLOSESOCKET 1
 #cmakedefine PETSC_HAVE_WSAGETLASTERROR 1
+
+/* Values taken from http://sourceforge.net/p/mingw-w64/bugs/242/ */
+#ifdef __MINGW32__
+	#define EADDRINUSE 100
+	#define EALREADY 103
+	#define ECONNREFUSED 107
+	#define EISCONN 113
+#endif
+
+/* Prefetch */
+#cmakedefine PETSC_HAVE_XMMINTRIN_H 1
+#define @PETSC_Prefetch_KEY@ @PETSC_Prefetch_VAL@
+#cmakedefine PETSC_PREFETCH_HINT_NTA @PETSC_PREFETCH_HINT_NTA_VAL@
+#cmakedefine PETSC_PREFETCH_HINT_T0 @PETSC_PREFETCH_HINT_T0@
+#cmakedefine PETSC_PREFETCH_HINT_T1 @PETSC_PREFETCH_HINT_T1@
+#cmakedefine PETSC_PREFETCH_HINT_T2 @PETSC_PREFETCH_HINT_T2@
 
 /* Fortran */
 #cmakedefine PETSC_HAVE_FORTRAN_UNDERSCORE 1
@@ -120,18 +136,6 @@
 
 #ifndef PETSC_HAVE_SO_REUSEADDR
 #define PETSC_HAVE_SO_REUSEADDR 1
-#endif
-
-#ifndef PETSC_PREFETCH_HINT_T2
-#define PETSC_PREFETCH_HINT_T2 _MM_HINT_T2
-#endif
-
-#ifndef PETSC_PREFETCH_HINT_T0
-#define PETSC_PREFETCH_HINT_T0 _MM_HINT_T0
-#endif
-
-#ifndef PETSC_PREFETCH_HINT_T1
-#define PETSC_PREFETCH_HINT_T1 _MM_HINT_T1
 #endif
 
 #ifndef PETSC_USE_SOCKET_VIEWER
@@ -200,14 +204,6 @@
 
 #ifndef PETSC_PATH_SEPARATOR
 #define PETSC_PATH_SEPARATOR ':'
-#endif
-
-#ifndef PETSC_PREFETCH_HINT_NTA
-#define PETSC_PREFETCH_HINT_NTA _MM_HINT_NTA
-#endif
-
-#ifndef PETSC_Prefetch
-#define PETSC_Prefetch(a,b,c) _mm_prefetch((const char*)(a),(c))
 #endif
 
 #ifndef PETSC_HAVE_BLASLAPACK
