@@ -324,15 +324,6 @@ foreach(PACKAGE ${PETSC_DEPENDENCIES})
     endif()
 endforeach()
 
-# This is a dirty hack until questions http://stackoverflow.com/questions/30568733/conditional-transitive-link-libraries
-# and/or my post on the CMake Mailing List are answered. The transitive linking works for one level,
-# but if the imported package scotch has link dependencies itself, those are not known in this context
-# and hence linking will (possibly) fail if the package zlib is not re-included here. 
-option(SCOTCH_WITH_ZLIB "${PROJECT_NAME} - (PT-)Scotch has ZLIB support builtin" ON)
-if (USE_PTSCOTCH AND SCOTCH_WITH_ZLIB)
-    find_package(ZLIB REQUIRED)
-endif()
-
 ########################################################
 # X11
 find_package(X11 QUIET)
