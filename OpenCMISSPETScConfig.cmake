@@ -245,57 +245,36 @@ CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
 # This should ideally be contained somehow in the exported config files, but as it isnt we need
 # to manually say which targets are defined in which package (which is knowledge that should be available
 # also in this local context as we're consuming all of those packages here)
-SET(ALLEXT PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
+SET(PETSC_DEPENDENCIES PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
     SUPERLU SUNDIALS HYPRE SUPERLU_DIST PARMETIS)
-SET(PARMETIS_TARGETS parmetis metis)
-SET(PTSCOTCH_TARGETS scotch ptscotch esmumps ptesmumps)
-SET(SUITESPARSE_TARGETS suitesparseconfig amd btf camd cholmod colamd ccolamd klu umfpack)
-SET(PASTIX_TARGETS pastix)
-SET(SCALAPACK_TARGETS scalapack)
-SET(MUMPS_TARGETS dmumps mumps_common pord) #smumps
-SET(SUPERLU_DIST_TARGETS superlu_dist)
-SET(SUPERLU_TARGETS superlu)
-SET(SUNDIALS_TARGETS sundials_cvode sundials_fcvode sundials_cvodes
-    sundials_ida sundials_fida sundials_idas
-    sundials_kinsol sundials_fkinsol
-    sundials_nvecparallel sundials_nvecserial
-    )
-SET(HYPRE_TARGETS hypre)
-
 SET(PETSCCONF_HAVE_FLAGS )
 SET(PETSC_CONFIGINFO_STRING )
-foreach(PACKAGE ${ALLEXT})
+foreach(PACKAGE ${PETSC_DEPENDENCIES})
     # Define the option
     option(USE_${PACKAGE} "Build PETSc with ${PACKAGE}" ON)
     
     # See if we want to use it
     if (USE_${PACKAGE})
-        find_package(${PACKAGE} ${${PACKAGE}_VERSION} QUIET)
-        if (${PACKAGE}_FOUND)
-            message(STATUS "Building PETSC with ${PACKAGE}...")
-            # Set the petsc-have flag
-            SET(PETSC_HAVE_${PACKAGE} YES)
-            # Add targets to link targets list
-            LIST(APPEND PETSC_PACKAGE_LIBS ${${PACKAGE}_TARGETS})
-        endif()
-    endif()
-    LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
-    
-    # If found, add definitions to header and information files
-    if (PETSC_HAVE_${PACKAGE})
+        message(STATUS "Building PETSC with ${PACKAGE}...")
+        find_package(${PACKAGE} ${${PACKAGE}_VERSION} REQUIRED)
+        STRING(TOLOWER ${PACKAGE} pkgname)
+        
+        # Set the petsc-have flag
+        SET(PETSC_HAVE_${PACKAGE} YES)
+        
+        # Add targets to link targets list
+        LIST(APPEND PETSC_PACKAGE_LIBS ${pkgname})
+        
         # petscconfig.h
         LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
         
         # petscconfiginfo.h
-        STRING(TOLOWER ${PACKAGE} pkgname)
         SET(INCLUDES )
         SET(LIBRARIES )
-        foreach(TARGET ${${PACKAGE}_TARGETS})
-            get_target_property(INCDIR ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
-            LIST(APPEND INCLUDES ${INCDIR})
-            get_target_property(TARGET_FILE ${TARGET} LOCATION)
-            LIST(APPEND LIBRARIES ${TARGET_FILE})
-        endforeach()
+        get_target_property(INCDIR ${pkgname} INTERFACE_INCLUDE_DIRECTORIES)
+        LIST(APPEND INCLUDES ${INCDIR})
+        get_target_property(LINK_LIBS ${pkgname} INTERFACE_LINK_LIBRARIES)
+        LIST(APPEND LIBRARIES ${LINK_LIBS})
         STRING(REPLACE ";" "," LIBRARIES "${LIBRARIES}")
         STRING(REPLACE ";" "," INCLUDES "${INCLUDES}")
         LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
@@ -330,6 +309,7 @@ if (WITH_OPENMP)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
     SET(PETSC_HAVE_OPENMP 1)
   else()
+    set(WITH_OPENMP FALSE)
     SET(PETSC_HAVE_OPENMP FALSE)
   endif()
 endif()

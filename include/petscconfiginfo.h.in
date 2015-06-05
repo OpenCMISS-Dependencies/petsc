@@ -1,2 +1,2 @@
 static const char *petscconfigureoptions = "--with-single-library=1 --with-shared-libraries=0 --with-precision=double --with-scalar-type=real"
-	"@PETSC_CONFIG_DEFS@";
+	"@PETSC_CONFIGINFO_STRING@";
