@@ -1,22 +1,19 @@
 # Init with whatever else configuration is provided by PETSc config run
 include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 
+option(PETSC_USE_DEBUG "${PROJECT_NAME} - Build with DEBUG information" NO)
+
 # Fixed settings
+SET(PETSC_HAVE_CXX YES)
 SET(PETSC_HAVE_FORTRAN YES)
 if (NOT DEFINED FORTRAN_MANGLING)
     set(FORTRAN_MANGLING Add_ CACHE STRING "${PROJECT_NAME} - Fortran mangling scheme")
 endif()
-option(PETSC_USE_DEBUG "${PROJECT_NAME} - Build with DEBUG information" NO)
 
 # Setup the fortran libraries to be available for function checking as well
 LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 LIST(APPEND PETSC_PACKAGE_INCLUDES ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
-SET(PETSC_HAVE_CXX YES)
 SET(PETSC_USE_SINGLE_LIBRARY 1)
-# RT library
-#if (UNIX AND NOT APPLE)
-#    LIST(APPEND PETSC_PACKAGE_LIBS rt)
-#endif()
 
 # Headers/functions lookup lists
 include(${CMAKE_CURRENT_SOURCE_DIR}/Functions.cmake)
@@ -74,9 +71,6 @@ endif()
 #message(STATUS "PETSC Include dirs: ${PETSC_PACKAGE_INCLUDES}")#\nInclude Libraries: ${PETSC_PACKAGE_LIBS}
 SET(CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
 SET(CMAKE_REQUIRED_INCLUDES ${PETSC_PACKAGE_INCLUDES})
-#foreach(FDIR ${PETSC_PACKAGE_INCLUDES})
-#    SET(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${FDIR}")
-#endforeach()
 #message(STATUS "Req. includes: ${CMAKE_REQUIRED_INCLUDES}")
 #message(STATUS "Req. libs: ${CMAKE_REQUIRED_LIBRARIES}")
 #message(STATUS "Req. flags: ${CMAKE_REQUIRED_FLAGS}")
@@ -88,9 +82,7 @@ if (USE_THREADS)
         SET(PETSC_HAVE_PTHREAD YES)
         LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
         CHECK_SYMBOL_EXISTS(pthread_barrier_t pthread.h PETSC_HAVE_PTHREAD_BARRIER_T)
-        #trycompile(PETSC_HAVE_PTHREAD_BARRIER_T "#include <pthread.h>" "pthread_barrier_t *a;" c)
         CHECK_SYMBOL_EXISTS(cpu_set_t sched.h PETSC_HAVE_SCHED_CPU_SET_T)
-        #trycompile(PETSC_HAVE_SCHED_CPU_SET_T "#include <sched.h>" "cpu_set_t *a;" c)
         LIST(APPEND SEARCHHEADERS sys/sysctl) 
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
@@ -119,8 +111,11 @@ endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
 
-# check availability of uid_t and gid_t
+# __SSE__
+CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
+
 if (MINGW)
+    # check availability of uid_t and gid_t
     if (PETSC_HAVE_UNISTD_H)
         CHECK_SYMBOL_EXISTS(uid_t "unistd.h" PETSC_HAVE_UID_T)
         CHECK_SYMBOL_EXISTS(gid_t "unistd.h" PETSC_HAVE_GID_T)
@@ -128,12 +123,11 @@ if (MINGW)
         CHECK_SYMBOL_EXISTS(uid_t "sys/types.h" PETSC_HAVE_UID_T)
         CHECK_SYMBOL_EXISTS(gid_t "sys/types.h" PETSC_HAVE_GID_T)
     endif()
-endif()
-
-# __SSE__
-CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
-if (MINGW AND NOT PETSC_HAVE_SSE)
-    set(PETSC_HAVE_XMMINTRIN_H NO)
+    
+    # __SSE__
+    if (NOT PETSC_HAVE_SSE)
+        set(PETSC_HAVE_XMMINTRIN_H NO)
+    endif()
 endif()
 
 ########################################################
@@ -190,30 +184,21 @@ if (PETSC_HAVE_MPI)
     endif()
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_set PETSC_HAVE_MPICH_CH3_SOCK)
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_fixed_nbc_progress PETSC_HAVE_MPICH_CH3_SOCK_FIXED_NBC_PROGRESS)
+    CHECK_SYMBOL_EXISTS(MPI_Comm_f2c mpi.h PETSC_HAVE_MPI_COMM_F2C)
+    CHECK_SYMBOL_EXISTS(MPI_Comm_c2f mpi.h PETSC_HAVE_MPI_COMM_C2F)
+    CHECK_SYMBOL_EXISTS(MPI_IN_PLACE mpi.h PETSC_HAVE_MPI_IN_PLACE)
     
     # The CheckSymbolExists wont find enum types - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
     #CHECK_SYMBOL_EXISTS(MPI_COMBINER_DUP mpi.h PETSC_HAVE_MPI_COMBINER_DUP)
     trycompile(PETSC_HAVE_MPI_COMBINER_DUP "#include <mpi.h>" "int combiner = MPI_COMBINER_DUP;" c)
     #CHECK_SYMBOL_EXISTS(MPI_COMBINER_CONTIGUOUS mpi.h PETSC_HAVE_MPI_COMBINER_CONTIGUOUS)
     trycompile(PETSC_HAVE_MPI_COMBINER_CONTIGUOUS "#include <mpi.h>" "int combiner = MPI_COMBINER_CONTIGUOUS;" c)
-    
-    CHECK_SYMBOL_EXISTS(MPI_Comm_f2c mpi.h PETSC_HAVE_MPI_COMM_F2C)
-    #trycompile(PETSC_HAVE_MPI_COMM_F2C "#include <mpi.h>" "if (MPI_Comm_f2c((MPI_Fint)0));" c)
-    
-    CHECK_SYMBOL_EXISTS(MPI_Comm_c2f mpi.h PETSC_HAVE_MPI_COMM_C2F)
-    #trycompile(PETSC_HAVE_MPI_COMM_C2F "#include <mpi.h>" "if (MPI_Comm_c2f(MPI_COMM_WORLD));" c)
-    
     # MPI_Fint is a typedef - - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
     #CHECK_SYMBOL_EXISTS(MPI_Fint mpi.h PETSC_HAVE_MPI_FINT)
     trycompile(PETSC_HAVE_MPI_FINT "#include <mpi.h>" "MPI_Fint a;" c)
     
-    CHECK_SYMBOL_EXISTS(MPI_IN_PLACE mpi.h PETSC_HAVE_MPI_IN_PLACE)
-    
     # Data types
     foreach(MPI_DATATYPE MPI_LONG_DOUBLE MPI_INT64_T MPI_C_DOUBLE_COMPLEX)
-        #trycompile(PETSC_HAVE_${MPI_DATATYPE} 
-        #    "#ifdef PETSC_HAVE_STDLIB_H\n  #include <stdlib.h>\n#endif\n#include <mpi.h>\n"
-        #    "MPI_Aint size;\nint ierr;\nMPI_Init(0,0);\nierr = MPI_Type_extent(${MPI_DATATYPE}, &size);\nif(ierr || (size == 0)) exit(1);\nMPI_Finalize();\n" c)
         CHECK_SYMBOL_EXISTS(${MPI_DATATYPE} mpi.h PETSC_HAVE_${MPI_DATATYPE})
         if (PETSC_HAVE_${MPI_DATATYPE})
             LIST(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
