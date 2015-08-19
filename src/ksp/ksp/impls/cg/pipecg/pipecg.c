@@ -1,5 +1,5 @@
 
-#include <petsc-private/kspimpl.h>
+#include <petsc/private/kspimpl.h>
 
 /*
      KSPSetUp_PIPECG - Sets up the workspace needed by the PIPECG method.
@@ -84,7 +84,7 @@ PetscErrorCode  KSPSolve_PIPECG(KSP ksp)
     ierr = PetscCommSplitReductionBegin(PetscObjectComm((PetscObject)R));CHKERRQ(ierr);
     ierr = KSP_MatMult(ksp,Amat,U,W);CHKERRQ(ierr);              /*     w <- Au   */
     ierr = VecDotEnd(R,U,&gamma);CHKERRQ(ierr);
-    if (PetscIsInfOrNanScalar(gamma)) SETERRQ(PetscObjectComm((PetscObject)ksp),PETSC_ERR_FP,"Infinite or not-a-number generated in dot product");
+    KSPCheckDot(ksp,gamma);
     dp = PetscSqrtReal(PetscAbsScalar(gamma));                  /*     dp <- r'*u = r'*B*r = e'*A'*B*A*e */
     break;
   case KSP_NORM_NONE:
@@ -174,12 +174,12 @@ PetscErrorCode  KSPSolve_PIPECG(KSP ksp)
 /*MC
    KSPPIPECG - Pipelined conjugate gradient method.
 
-   There method has only a single non-blocking reduction per iteration, compared to 2 blocking for standard CG.  The
+   This method has only a single non-blocking reduction per iteration, compared to 2 blocking for standard CG.  The
    non-blocking reduction is overlapped by the matrix-vector product and preconditioner application.
 
    See also KSPPIPECR, where the reduction is only overlapped with the matrix-vector product.
 
-   Level: beginner
+   Level: intermediate
 
    Notes:
    MPI configuration may be necessary for reductions to make asynchronous progress, which is important for performance of pipelined methods.

@@ -1,6 +1,6 @@
 #ifndef __TAO_MFQNLS_H
 #define __TAO_MFQNLS_H
-#include <petsc-private/taoimpl.h>
+#include <petsc/private/taoimpl.h>
 #include <petsc.h>
 #include <petscblaslapack.h>
 
@@ -31,6 +31,8 @@ typedef struct {
   PetscInt minindex;
   PetscInt nmodelpoints;
   PetscInt *model_indices; /* n */
+  PetscInt last_nmodelpoints;
+  PetscInt *last_model_indices; /* n */
   PetscInt *interp_indices; /* n */
   PetscBLASInt *iwork; /* n */
   PetscInt nHist;
@@ -41,6 +43,7 @@ typedef struct {
 
 
   PetscReal delta; /* Trust region radius (>0) */
+  PetscReal delta0;
   PetscBool usegqt;
   Mat Hs;
   Vec b;

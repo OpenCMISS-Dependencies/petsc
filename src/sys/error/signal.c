@@ -3,7 +3,7 @@
       Routines to handle signals the program will receive.
     Usually this will call the error handlers.
 */
-#include <petsc-private/petscimpl.h>             /*I   "petscsys.h"   I*/
+#include <petsc/private/petscimpl.h>             /*I   "petscsys.h"   I*/
 #include <signal.h>
 
 static PetscClassId SIGNAL_CLASSID = 0;
@@ -141,7 +141,7 @@ PetscErrorCode  PetscSignalHandlerDefault(int sig,void *ptr)
   else (*PetscErrorPrintf)("Caught signal\n");
 
   (*PetscErrorPrintf)("Try option -start_in_debugger or -on_error_attach_debugger\n");
-  (*PetscErrorPrintf)("or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind");
+  (*PetscErrorPrintf)("or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind\n");
   (*PetscErrorPrintf)("or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors\n");
 #if defined(PETSC_USE_DEBUG)
   if (!PetscStackActive()) (*PetscErrorPrintf)("  or try option -log_stack\n");

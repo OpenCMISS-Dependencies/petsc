@@ -5,7 +5,7 @@
 
 #include <petscvec.h>
 #include <petscsf.h>
-#include <petsc-private/threadcommimpl.h>
+
 #undef __FUNCT__
 #define __FUNCT__ "PetscLayoutCreate"
 /*@C
@@ -94,10 +94,6 @@ PetscErrorCode  PetscLayoutDestroy(PetscLayout *map)
   if (!(*map)->refcnt--) {
     ierr = PetscFree((*map)->range);CHKERRQ(ierr);
     ierr = ISLocalToGlobalMappingDestroy(&(*map)->mapping);CHKERRQ(ierr);
-#if defined(PETSC_THREADCOMM_ACTIVE)
-    ierr = PetscFree((*map)->trstarts);CHKERRQ(ierr);
-#endif
-
     ierr = PetscFree((*map));CHKERRQ(ierr);
   }
   *map = NULL;
@@ -151,7 +147,7 @@ PetscErrorCode  PetscLayoutSetUp(PetscLayout map)
   map->n = map->n*PetscAbs(map->bs);
   map->N = map->N*PetscAbs(map->bs);
   if (!map->range) {
-    ierr = PetscMalloc1((size+1), &map->range);CHKERRQ(ierr);
+    ierr = PetscMalloc1(size+1, &map->range);CHKERRQ(ierr);
   }
   ierr = MPI_Allgather(&map->n, 1, MPIU_INT, map->range+1, 1, MPIU_INT, map->comm);CHKERRQ(ierr);
 
@@ -160,10 +156,6 @@ PetscErrorCode  PetscLayoutSetUp(PetscLayout map)
 
   map->rstart = map->range[rank];
   map->rend   = map->range[rank+1];
-#if defined(PETSC_THREADCOMM_ACTIVE)
-  /* Set the thread ownership ranges */
-  ierr = PetscThreadCommGetOwnershipRanges(map->comm,map->n,&map->trstarts);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -199,7 +191,7 @@ PetscErrorCode  PetscLayoutDuplicate(PetscLayout in,PetscLayout *out)
   ierr = PetscLayoutCreate(comm,out);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   ierr = PetscMemcpy(*out,in,sizeof(struct _n_PetscLayout));CHKERRQ(ierr);
-  ierr = PetscMalloc1((size+1),&(*out)->range);CHKERRQ(ierr);
+  ierr = PetscMalloc1(size+1,&(*out)->range);CHKERRQ(ierr);
   ierr = PetscMemcpy((*out)->range,in->range,(size+1)*sizeof(PetscInt));CHKERRQ(ierr);
 
   (*out)->refcnt = 0;
@@ -429,7 +421,7 @@ PetscErrorCode  PetscLayoutSetBlockSize(PetscLayout map,PetscInt bs)
   PetscFunctionBegin;
   if (bs < 0) PetscFunctionReturn(0);
   if (map->n > 0 && map->n % bs) SETERRQ2(map->comm,PETSC_ERR_ARG_INCOMP,"Local size %D not compatible with block size %D",map->n,bs);
-  if (map->bs > 0 && map->bs != bs) SETERRQ2(map->comm,PETSC_ERR_ARG_INCOMP,"Cannot change block size %D to %D",map->bs,bs);
+  if (map->range && map->bs > 0 && map->bs != bs) SETERRQ2(map->comm,PETSC_ERR_ARG_INCOMP,"Cannot change block size %D to %D",map->bs,bs);
   if (map->mapping) {
     PetscInt       lbs;
     PetscErrorCode ierr;

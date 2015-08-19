@@ -8,10 +8,9 @@
       accessible to users. The private API is defined in logimpl.h and the utils directory.
 
 */
-#include <petsc-private/logimpl.h>        /*I    "petscsys.h"   I*/
+#include <petsc/private/logimpl.h>        /*I    "petscsys.h"   I*/
 #include <petsctime.h>
 #include <petscviewer.h>
-#include <petscthreadcomm.h>
 
 PetscErrorCode PetscLogObjectParent(PetscObject p,PetscObject c)
 {
@@ -23,6 +22,7 @@ PetscErrorCode PetscLogObjectParent(PetscObject p,PetscObject c)
 
 PetscErrorCode PetscLogObjectMemory(PetscObject p,PetscLogDouble m)
 {
+  if (!p) return 0;
   p->mem += m;
   return 0;
 }
@@ -176,9 +176,6 @@ PetscErrorCode  PetscLogSet(PetscErrorCode (*b)(PetscLogEvent, int, PetscObject,
   PetscFunctionReturn(0);
 }
 
-#if defined(PETSC_HAVE_CHUD)
-#include <CHUD/CHUD.h>
-#endif
 #if defined(PETSC_HAVE_PAPI)
 #include <papi.h>
 int PAPIEventSet = PAPI_NULL;
@@ -212,24 +209,6 @@ PetscErrorCode  PetscLogBegin_Private(void)
   /* Setup default logging structures */
   ierr = PetscStageLogCreate(&petsc_stageLog);CHKERRQ(ierr);
   ierr = PetscStageLogRegister(petsc_stageLog, "Main Stage", &stage);CHKERRQ(ierr);
-#if defined(PETSC_HAVE_CHUD)
-  ierr = chudInitialize();CHKERRQ(ierr);
-  ierr = chudAcquireSamplingFacility(CHUD_BLOCKING);CHKERRQ(ierr);
-  ierr = chudSetSamplingDevice(chudCPU1Dev);CHKERRQ(ierr);
-  ierr = chudSetStartDelay(0,chudNanoSeconds);CHKERRQ(ierr);
-  ierr = chudClearPMCMode(chudCPU1Dev,chudUnused);CHKERRQ(ierr);
-  ierr = chudClearPMCs();CHKERRQ(ierr);
-  /* ierr = chudSetPMCMuxPosition(chudCPU1Dev,0,0);CHKERRQ(ierr); */
-  printf("%s\n",chudGetEventName(chudCPU1Dev,PMC_1,193));
-  printf("%s\n",chudGetEventDescription(chudCPU1Dev,PMC_1,193));
-  printf("%s\n",chudGetEventNotes(chudCPU1Dev,PMC_1,193));
-  ierr = chudSetPMCEvent(chudCPU1Dev,PMC_1,193);CHKERRQ(ierr);
-  ierr = chudSetPMCMode(chudCPU1Dev,PMC_1,chudCounter);CHKERRQ(ierr);
-  ierr = chudSetPrivilegeFilter(chudCPU1Dev,PMC_1,chudCountUserEvents);CHKERRQ(ierr);
-  ierr = chudSetPMCEventMask(chudCPU1Dev,PMC_1,0xFE);CHKERRQ(ierr);
-  if (!chudIsEventValid(chudCPU1Dev,PMC_1,193)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Event is not valid %d",193);
-  ierr = chudStartPMCs();CHKERRQ(ierr);
-#endif
 #if defined(PETSC_HAVE_PAPI)
   ierr = PAPI_library_init(PAPI_VER_CURRENT);
   if (ierr != PAPI_VER_CURRENT) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Cannot initialize PAPI");
@@ -663,7 +642,7 @@ PetscErrorCode  PetscLogStageGetVisible(PetscLogStage stage, PetscBool  *isVisib
 . name  - The stage name
 
   Output Parameter:
-. stage - The stage
+. stage - The stage, , or -1 if no stage with that name exists
 
   Level: intermediate
 
@@ -1325,7 +1304,6 @@ PetscErrorCode  PetscLogView_Default(PetscViewer viewer)
   PetscErrorCode     ierr;
   char               version[256];
   MPI_Comm           comm;
-  PetscInt           nthreads;
 
   PetscFunctionBegin;
   ierr = PetscObjectGetComm((PetscObject)viewer,&comm);CHKERRQ(ierr);
@@ -1349,10 +1327,6 @@ PetscErrorCode  PetscLogView_Default(PetscViewer viewer)
     ierr = PetscFPrintf(comm,fd,"%s on a %s named %s with %d processor, by %s %s\n", pname, arch, hostname, size, username, date);CHKERRQ(ierr);
   } else {
     ierr = PetscFPrintf(comm,fd,"%s on a %s named %s with %d processors, by %s %s\n", pname, arch, hostname, size, username, date);CHKERRQ(ierr);
-  }
-  ierr = PetscThreadCommGetNThreads(PETSC_COMM_WORLD,&nthreads);CHKERRQ(ierr);
-  if (nthreads > 1) {
-    ierr = PetscFPrintf(comm,fd,"With %d threads per MPI_Comm\n", (int)nthreads);CHKERRQ(ierr);
   }
 
   ierr = PetscFPrintf(comm, fd, "Using %s\n", version);CHKERRQ(ierr);
