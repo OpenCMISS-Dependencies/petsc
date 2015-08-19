@@ -31,3 +31,10 @@ if (NOT WIN32)
 endif()
 set(PETSC_PACKAGE_LIBS ${PETSC_DL_LIB})
 set(PETSC_PACKAGE_INCLUDES )
+
+# New variables in petsc 3.6.1
+set (PETSC_HAVE_HWLOC YES)
+# This is only used to check if the mpi in a third party program consuming petsc is the same as the one used to build petsc.
+#set (PETSC_HAVE_OMPI_MINOR_VERSION 6)
+#set (PETSC_HAVE_OMPI_MAJOR_VERSION 1)
+#set (PETSC_HAVE_OMPI_RELEASE_VERSION 5)

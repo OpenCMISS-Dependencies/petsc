@@ -41,6 +41,7 @@ else()
     LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_Fortran_LIBRARIES})
     LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH})    
 endif()
+# Extra MPI-related functions
 LIST(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
       MPI_Iallreduce MPI_Ibarrier MPI_Finalized MPI_Exscan MPIX_Iallreduce MPI_Win_create MPI_Alltoallw MPI_Type_create_indexed_block)
 
@@ -164,6 +165,8 @@ LIST(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     gethostbyname uname snprintf _snprintf lseek _lseek time fork stricmp 
     strcasecmp bzero dlopen dlsym dlclose dlerror get_nprocs sysctlbyname _set_output_format
     closesocket WSAGetLastError # from missing.py:65 / socket stuff
+    # Added in Petsc 3.6.1 (at least here)
+    vsnprintf va_copy getrusage vfprintf nanosleep sysinfo vprintf
 )
 SET(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
