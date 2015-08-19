@@ -1825,7 +1825,9 @@ if (PETSC_USE_SINGLE_LIBRARY)
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
   endif ()
-
+  install(TARGETS petsc EXPORT petsc-config
+      DESTINATION lib
+      INCLUDES DESTINATION include/petsc)
 endif ()
 
 if (PETSC_CLANGUAGE_Cxx)

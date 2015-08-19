@@ -23,4 +23,4 @@ string(REGEX REPLACE "^(PETSC|TAO)(_DLL|VEC_DLL|MAT_DLL|DM_DLL|KSP_DLL|SNES_DLL|
 # Stupid semicolon - list thing in cmake - revert
 string(REPLACE "@@@" ";" contents "${contents}")
 
-file(WRITE ${FILE} "#include \"petscsys.h\"\n#include \"petscfix.h\"\n#include \"petsc-private/fortranimpl.h\"\n${contents}")
+file(WRITE ${FILE} "#include \"petscsys.h\"\n#include \"petscfix.h\"\n#include \"petsc/private/fortranimpl.h\"\n${contents}")
