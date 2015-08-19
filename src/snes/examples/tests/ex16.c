@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
   /* Create distributed array to manage the 2d grid */
   ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,-10,-10,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&user.da);CHKERRQ(ierr);
-  ierr = DMDAGetIerr(user.da,PETSC_IGNORE,&user.mx,&user.my,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
+  //ierr = DMDAGetIerr(user.da,PETSC_IGNORE,&user.mx,&user.my,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
 
   user.bheight = 0.1;
   ierr         = PetscOptionsGetScalar(NULL,"-bheight",&user.bheight,&flg);CHKERRQ(ierr);

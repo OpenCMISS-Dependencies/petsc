@@ -1,7 +1,6 @@
 #include <petscsnes.h>
 #include <petscdm.h>
 #include <petscdmda.h>
-#include <../src/snes/impls/vi/viimpl.h>
 
 static  char help[]=
 "This example is an implementation of the journal bearing problem from TAO package\n\
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
      the distributed array, Create the vectors.
   */
   ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,-50,-50,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&user.da);CHKERRQ(ierr);
-  ierr = DMDAGetIerr(user.da,PETSC_IGNORE,&user.nx,&user.ny,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
+  //ierr = DMDAGetIerr(user.da,PETSC_IGNORE,&user.nx,&user.ny,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
 
   PetscPrintf(PETSC_COMM_WORLD,"\n---- Journal Bearing Problem -----\n");
   PetscPrintf(PETSC_COMM_WORLD,"mx: %d,  my: %d,  ecc: %4.3f, b:%3.1f \n",
