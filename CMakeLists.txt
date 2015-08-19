@@ -42,6 +42,9 @@ set (CMAKE_Fortran_MODULE_DIRECTORY "${PETSc_BINARY_DIR}/include")
 
 include_directories (${PETSC_PACKAGE_INCLUDES})
 list (APPEND PETSCSYS_SRCS
+  src/sys/info/verboseinfo.c
+  src/sys/logging/plog.c
+  src/sys/python/pythonsys.c
   src/sys/utils/arch.c
   src/sys/utils/fhost.c
   src/sys/utils/fuser.c
@@ -64,32 +67,12 @@ list (APPEND PETSCSYS_SRCS
   src/sys/utils/mathinf.c
   src/sys/utils/mpits.c
   src/sys/utils/segbuffer.c
-  src/sys/dll/dlimpl.c
-  src/sys/dll/dl.c
-  src/sys/dll/reg.c
-  src/sys/fileio/ffpath.c
-  src/sys/fileio/ftest.c
-  src/sys/fileio/ghome.c
-  src/sys/fileio/mpiuopen.c
-  src/sys/fileio/rpath.c
-  src/sys/fileio/fpath.c
-  src/sys/fileio/fwd.c
-  src/sys/fileio/grpath.c
-  src/sys/fileio/mprint.c
-  src/sys/fileio/sysio.c
-  src/sys/fileio/fretrieve.c
-  src/sys/fileio/smatlab.c
   src/sys/memory/mal.c
   src/sys/memory/mem.c
   src/sys/memory/mtr.c
-  src/sys/threadcomm/impls/nothread/nothread.c
-  src/sys/threadcomm/interface/dlregisthreadcomm.c
-  src/sys/threadcomm/interface/threadcomm.c
-  src/sys/threadcomm/interface/threadcommregi.c
-  src/sys/threadcomm/interface/threadcommred.c
-  src/sys/python/pythonsys.c
-  src/sys/time/cputime.c
-  src/sys/time/fdate.c
+  src/sys/dll/dlimpl.c
+  src/sys/dll/dl.c
+  src/sys/dll/reg.c
   src/sys/objects/version.c
   src/sys/objects/gcomm.c
   src/sys/objects/gtype.c
@@ -109,13 +92,34 @@ list (APPEND PETSCSYS_SRCS
   src/sys/objects/aoptions.c
   src/sys/objects/subcomm.c
   src/sys/objects/fcallback.c
+  src/sys/time/cputime.c
+  src/sys/time/fdate.c
+  src/sys/error/adebug.c
+  src/sys/error/err.c
+  src/sys/error/errtrace.c
+  src/sys/error/errabort.c
+  src/sys/error/errstop.c
+  src/sys/error/fp.c
+  src/sys/error/signal.c
+  src/sys/error/pstack.c
+  src/sys/error/checkptr.c
   src/sys/totalview/tv_data_display.c
-  src/sys/info/verboseinfo.c
-  src/sys/logging/plog.c
+  src/sys/fileio/ffpath.c
+  src/sys/fileio/ftest.c
+  src/sys/fileio/ghome.c
+  src/sys/fileio/mpiuopen.c
+  src/sys/fileio/rpath.c
+  src/sys/fileio/fpath.c
+  src/sys/fileio/fwd.c
+  src/sys/fileio/grpath.c
+  src/sys/fileio/mprint.c
+  src/sys/fileio/sysio.c
+  src/sys/fileio/fretrieve.c
+  src/sys/fileio/smatlab.c
   src/sys/classes/viewer/impls/binary/binv.c
   src/sys/classes/viewer/impls/draw/drawv.c
-  src/sys/classes/viewer/impls/vtk/vtkv.c
   src/sys/classes/viewer/impls/vu/petscvu.c
+  src/sys/classes/viewer/impls/vtk/vtkv.c
   src/sys/classes/viewer/impls/ascii/filev.c
   src/sys/classes/viewer/impls/ascii/vcreatea.c
   src/sys/classes/viewer/impls/string/stringv.c
@@ -142,6 +146,7 @@ list (APPEND PETSCSYS_SRCS
   src/sys/classes/draw/interface/dcoor.c
   src/sys/classes/draw/interface/dpause.c
   src/sys/classes/draw/interface/dgpause.c
+  src/sys/classes/draw/interface/dmarker.c
   src/sys/classes/draw/interface/dgcoor.c
   src/sys/classes/draw/interface/dbuff.c
   src/sys/classes/draw/interface/dsetpause.c
@@ -163,20 +168,12 @@ list (APPEND PETSCSYS_SRCS
   src/sys/classes/draw/utils/hue.c
   src/sys/classes/draw/utils/lgc.c
   src/sys/classes/draw/utils/axisc.c
+  src/sys/classes/draw/utils/bars.c
   src/sys/classes/random/interface/random.c
   src/sys/classes/random/interface/randreg.c
   src/sys/classes/random/interface/dlregisrand.c
   src/sys/classes/random/interface/randomc.c
   src/sys/classes/bag/bag.c
-  src/sys/error/adebug.c
-  src/sys/error/err.c
-  src/sys/error/errtrace.c
-  src/sys/error/errabort.c
-  src/sys/error/errstop.c
-  src/sys/error/fp.c
-  src/sys/error/signal.c
-  src/sys/error/pstack.c
-  src/sys/error/checkptr.c
   )
 if (PETSC_HAVE_MPIUNI)
   list (APPEND PETSCSYS_SRCS
@@ -311,11 +308,6 @@ if (PETSC_HAVE_YAML)
     src/sys/yaml/yamlimpls.c
     )
 endif ()
-if (PETSC_HAVE_OPENMP)
-  list (APPEND PETSCSYS_SRCS
-    src/sys/threadcomm/impls/openmp/tcopenmp.c
-    )
-endif ()
 if (PETSC_HAVE_RAND)
   list (APPEND PETSCSYS_SRCS
     src/sys/classes/random/impls/rand/rand.c
@@ -330,41 +322,36 @@ if (PETSC_HAVE_SAWS)
 endif ()
 if (PETSC_HAVE_FORTRAN)
   list (APPEND PETSCSYS_SRCS
-    src/sys/utils/ftn-auto/mpitsf.c
+    src/sys/info/ftn-auto/verboseinfof.c
+    src/sys/info/ftn-custom/zverboseinfof.c
+    src/sys/ftn-custom/zsys.c
+    src/sys/ftn-custom/zutils.c
+    src/sys/logging/ftn-auto/plogf.c
+    src/sys/logging/ftn-custom/zplogf.c
+    src/sys/python/ftn-custom/zpythonf.c
+    src/sys/utils/ftn-auto/memcf.c
     src/sys/utils/ftn-auto/sortipf.c
     src/sys/utils/ftn-auto/sortif.c
-    src/sys/utils/ftn-auto/sortdf.c
+    src/sys/utils/ftn-auto/mpitsf.c
     src/sys/utils/ftn-auto/mpiuf.c
     src/sys/utils/ftn-auto/psleepf.c
-    src/sys/utils/ftn-auto/memcf.c
     src/sys/utils/ftn-auto/psplitf.c
+    src/sys/utils/ftn-auto/sortdf.c
     src/sys/utils/ftn-custom/zarchf.c
     src/sys/utils/ftn-custom/zstrf.c
     src/sys/utils/ftn-custom/zpbarrierf.c
     src/sys/utils/ftn-custom/zfhostf.c
-    src/sys/dll/ftn-auto/regf.c
-    src/sys/fileio/ftn-auto/mpiuopenf.c
-    src/sys/fileio/ftn-auto/sysiof.c
-    src/sys/fileio/ftn-custom/zghomef.c
-    src/sys/fileio/ftn-custom/zmpiuopenf.c
-    src/sys/fileio/ftn-custom/zmprintf.c
-    src/sys/fileio/ftn-custom/zsysiof.c
     src/sys/memory/ftn-auto/memf.c
     src/sys/memory/ftn-custom/zmtrf.c
-    src/sys/threadcomm/interface/ftn-auto/threadcommf.c
-    src/sys/ftn-custom/zsys.c
-    src/sys/ftn-custom/zutils.c
-    src/sys/python/ftn-custom/zpythonf.c
-    src/sys/time/ftn-auto/cputimef.c
-    src/sys/time/ftn-custom/zptimef.c
+    src/sys/dll/ftn-auto/regf.c
     src/sys/objects/ftn-auto/statef.c
-    src/sys/objects/ftn-auto/tagmf.c
     src/sys/objects/ftn-auto/pinitf.c
-    src/sys/objects/ftn-auto/destroyf.c
-    src/sys/objects/ftn-auto/inheritf.c
     src/sys/objects/ftn-auto/optionsf.c
-    src/sys/objects/ftn-auto/ptypef.c
+    src/sys/objects/ftn-auto/inheritf.c
     src/sys/objects/ftn-auto/gcommf.c
+    src/sys/objects/ftn-auto/tagmf.c
+    src/sys/objects/ftn-auto/ptypef.c
+    src/sys/objects/ftn-auto/destroyf.c
     src/sys/objects/ftn-custom/zgcommf.c
     src/sys/objects/ftn-custom/zoptionsf.c
     src/sys/objects/ftn-custom/zpgnamef.c
@@ -373,10 +360,21 @@ if (PETSC_HAVE_FORTRAN)
     src/sys/objects/ftn-custom/zdestroyf.c
     src/sys/objects/ftn-custom/zstart.c
     src/sys/objects/ftn-custom/zstartf.c
-    src/sys/info/ftn-auto/verboseinfof.c
-    src/sys/info/ftn-custom/zverboseinfof.c
-    src/sys/logging/ftn-auto/plogf.c
-    src/sys/logging/ftn-custom/zplogf.c
+    src/sys/fsrc/somefort.F
+    src/sys/time/ftn-auto/cputimef.c
+    src/sys/time/ftn-custom/zptimef.c
+    src/sys/error/ftn-auto/signalf.c
+    src/sys/error/ftn-auto/checkptrf.c
+    src/sys/error/ftn-auto/adebugf.c
+    src/sys/error/ftn-auto/errf.c
+    src/sys/error/ftn-auto/fpf.c
+    src/sys/error/ftn-custom/zerrf.c
+    src/sys/fileio/ftn-auto/mpiuopenf.c
+    src/sys/fileio/ftn-auto/sysiof.c
+    src/sys/fileio/ftn-custom/zghomef.c
+    src/sys/fileio/ftn-custom/zmpiuopenf.c
+    src/sys/fileio/ftn-custom/zmprintf.c
+    src/sys/fileio/ftn-custom/zsysiof.c
     src/sys/classes/viewer/impls/binary/ftn-auto/binvf.c
     src/sys/classes/viewer/impls/binary/ftn-custom/zbinvf.c
     src/sys/classes/viewer/impls/draw/ftn-auto/drawvf.c
@@ -386,76 +384,60 @@ if (PETSC_HAVE_FORTRAN)
     src/sys/classes/viewer/impls/ascii/ftn-custom/zfilevf.c
     src/sys/classes/viewer/impls/ascii/ftn-custom/zvcreatef.c
     src/sys/classes/viewer/impls/string/ftn-custom/zstringvf.c
-    src/sys/classes/viewer/interface/ftn-auto/viewregf.c
     src/sys/classes/viewer/interface/ftn-auto/flushf.c
-    src/sys/classes/viewer/interface/ftn-auto/duplf.c
     src/sys/classes/viewer/interface/ftn-auto/viewf.c
+    src/sys/classes/viewer/interface/ftn-auto/duplf.c
+    src/sys/classes/viewer/interface/ftn-auto/viewregf.c
     src/sys/classes/viewer/interface/ftn-custom/zviewaf.c
+    src/sys/classes/draw/interface/ftn-auto/drawregf.c
+    src/sys/classes/draw/interface/ftn-auto/dviewpf.c
+    src/sys/classes/draw/interface/ftn-auto/dmarkerf.c
+    src/sys/classes/draw/interface/ftn-auto/dpointsf.c
+    src/sys/classes/draw/interface/ftn-auto/dsclearf.c
     src/sys/classes/draw/interface/ftn-auto/dlinef.c
+    src/sys/classes/draw/interface/ftn-auto/dgpausef.c
+    src/sys/classes/draw/interface/ftn-auto/dsflushf.c
+    src/sys/classes/draw/interface/ftn-auto/dellipsef.c
+    src/sys/classes/draw/interface/ftn-auto/dtextgsf.c
+    src/sys/classes/draw/interface/ftn-auto/drawf.c
     src/sys/classes/draw/interface/ftn-auto/dlinewf.c
+    src/sys/classes/draw/interface/ftn-auto/dlinegwf.c
+    src/sys/classes/draw/interface/ftn-auto/dsetpausef.c
+    src/sys/classes/draw/interface/ftn-auto/dtrif.c
+    src/sys/classes/draw/interface/ftn-auto/dcoorf.c
+    src/sys/classes/draw/interface/ftn-auto/dmousef.c
     src/sys/classes/draw/interface/ftn-auto/dflushf.c
     src/sys/classes/draw/interface/ftn-auto/dclearf.c
-    src/sys/classes/draw/interface/ftn-auto/dcoorf.c
-    src/sys/classes/draw/interface/ftn-auto/dlinegwf.c
-    src/sys/classes/draw/interface/ftn-auto/dtrif.c
-    src/sys/classes/draw/interface/ftn-auto/dsflushf.c
-    src/sys/classes/draw/interface/ftn-auto/dsclearf.c
-    src/sys/classes/draw/interface/ftn-auto/dsetpausef.c
-    src/sys/classes/draw/interface/ftn-auto/dviewpf.c
-    src/sys/classes/draw/interface/ftn-auto/dpausef.c
-    src/sys/classes/draw/interface/ftn-auto/drectf.c
-    src/sys/classes/draw/interface/ftn-auto/dellipsef.c
-    src/sys/classes/draw/interface/ftn-auto/dgpausef.c
-    src/sys/classes/draw/interface/ftn-auto/dmousef.c
-    src/sys/classes/draw/interface/ftn-auto/dbufff.c
-    src/sys/classes/draw/interface/ftn-auto/dtextsf.c
-    src/sys/classes/draw/interface/ftn-auto/drawregf.c
     src/sys/classes/draw/interface/ftn-auto/dpointf.c
-    src/sys/classes/draw/interface/ftn-auto/dpointsf.c
+    src/sys/classes/draw/interface/ftn-auto/dbufff.c
+    src/sys/classes/draw/interface/ftn-auto/drectf.c
+    src/sys/classes/draw/interface/ftn-auto/dtextsf.c
     src/sys/classes/draw/interface/ftn-auto/dgcoorf.c
-    src/sys/classes/draw/interface/ftn-auto/drawf.c
-    src/sys/classes/draw/interface/ftn-auto/dtextgsf.c
+    src/sys/classes/draw/interface/ftn-auto/dpausef.c
     src/sys/classes/draw/interface/ftn-custom/zdrawf.c
     src/sys/classes/draw/interface/ftn-custom/zdrawregf.c
     src/sys/classes/draw/interface/ftn-custom/zdtextf.c
     src/sys/classes/draw/interface/ftn-custom/zdtextvf.c
     src/sys/classes/draw/interface/ftn-custom/zdtrif.c
-    src/sys/classes/draw/utils/ftn-auto/axisf.c
+    src/sys/classes/draw/utils/ftn-auto/lgf.c
     src/sys/classes/draw/utils/ftn-auto/lgcf.c
+    src/sys/classes/draw/utils/ftn-auto/histsf.c
+    src/sys/classes/draw/utils/ftn-auto/barsf.c
+    src/sys/classes/draw/utils/ftn-auto/axisf.c
     src/sys/classes/draw/utils/ftn-auto/axiscf.c
     src/sys/classes/draw/utils/ftn-auto/dscatterf.c
-    src/sys/classes/draw/utils/ftn-auto/histsf.c
-    src/sys/classes/draw/utils/ftn-auto/lgf.c
     src/sys/classes/draw/utils/ftn-custom/zaxisf.c
     src/sys/classes/draw/utils/ftn-custom/zzoomf.c
-    src/sys/classes/random/interface/ftn-auto/randomcf.c
     src/sys/classes/random/interface/ftn-auto/randomf.c
+    src/sys/classes/random/interface/ftn-auto/randomcf.c
     src/sys/classes/random/interface/ftn-custom/zrandomf.c
     src/sys/classes/bag/ftn-auto/bagf.c
     src/sys/classes/bag/ftn-custom/zbagf.c
-    src/sys/fsrc/somefort.F
-    src/sys/error/ftn-auto/signalf.c
-    src/sys/error/ftn-auto/adebugf.c
-    src/sys/error/ftn-auto/checkptrf.c
-    src/sys/error/ftn-auto/fpf.c
-    src/sys/error/ftn-auto/errf.c
-    src/sys/error/ftn-custom/zerrf.c
-    )
-endif ()
-if (PETSC_HAVE_JAVA AND PETSC_HAVE_SAWS)
-  list (APPEND PETSCSYS_SRCS
-    
     )
 endif ()
 if (PETSC_USING_F90 AND PETSC_HAVE_MPIUNI)
   list (APPEND PETSCSYS_SRCS
     src/sys/mpiuni/f90-mod/mpiunimod.F
-    )
-endif ()
-if (PETSC_HAVE_PTHREADCLASSES)
-  list (APPEND PETSCSYS_SRCS
-    src/sys/threadcomm/impls/pthread/tcpthread.c
-    src/sys/threadcomm/impls/pthread/tclockfree.c
     )
 endif ()
 
@@ -502,20 +484,20 @@ if (PETSC_HAVE_FORTRAN)
     src/vec/is/is/interface/ftn-auto/indexf.c
     src/vec/is/is/interface/ftn-auto/isregf.c
     src/vec/is/is/interface/ftn-custom/zindexf.c
-    src/vec/is/is/utils/ftn-auto/iscompf.c
-    src/vec/is/is/utils/ftn-auto/iscoloringf.c
     src/vec/is/is/utils/ftn-auto/isblockf.c
+    src/vec/is/is/utils/ftn-auto/iscompf.c
     src/vec/is/is/utils/ftn-auto/isdifff.c
+    src/vec/is/is/utils/ftn-auto/iscoloringf.c
     src/vec/is/is/utils/ftn-custom/ziscoloringf.c
-    src/vec/is/utils/ftn-auto/isltogf.c
     src/vec/is/utils/ftn-auto/vsectionisf.c
+    src/vec/is/utils/ftn-auto/isltogf.c
     src/vec/is/utils/ftn-custom/zisltogf.c
-    src/vec/is/sf/interface/ftn-auto/sff.c
     src/vec/is/ao/impls/mapping/ftn-auto/aomappingf.c
     src/vec/is/ao/impls/mapping/ftn-custom/zaomappingf.c
     src/vec/is/ao/impls/basic/ftn-custom/zaobasicf.c
     src/vec/is/ao/interface/ftn-auto/aof.c
     src/vec/is/ao/interface/ftn-custom/zaof.c
+    src/vec/is/sf/interface/ftn-auto/sff.c
     src/vec/pf/interface/ftn-auto/pff.c
     src/vec/vec/impls/shared/ftn-auto/shvecf.c
     src/vec/vec/impls/nest/ftn-auto/vecnestf.c
@@ -523,23 +505,23 @@ if (PETSC_HAVE_FORTRAN)
     src/vec/vec/impls/seq/ftn-auto/vseqcrf.c
     src/vec/vec/impls/seq/ftn-custom/zbvec2f.c
     src/vec/vec/impls/seq/ftn-custom/zvsectionf.c
-    src/vec/vec/impls/mpi/ftn-auto/vmpicrf.c
-    src/vec/vec/impls/mpi/ftn-auto/pbvecf.c
     src/vec/vec/impls/mpi/ftn-auto/commonmpvecf.c
+    src/vec/vec/impls/mpi/ftn-auto/pbvecf.c
+    src/vec/vec/impls/mpi/ftn-auto/vmpicrf.c
     src/vec/vec/impls/mpi/ftn-custom/zpbvecf.c
     src/vec/vec/interface/ftn-auto/veccreatef.c
     src/vec/vec/interface/ftn-auto/rvectorf.c
     src/vec/vec/interface/ftn-auto/vectorf.c
     src/vec/vec/interface/ftn-custom/zvecregf.c
     src/vec/vec/interface/ftn-custom/zvectorf.c
-    src/vec/vec/utils/ftn-auto/vinvf.c
-    src/vec/vec/utils/ftn-auto/cmeshf.c
     src/vec/vec/utils/ftn-auto/veciof.c
-    src/vec/vec/utils/ftn-auto/combf.c
-    src/vec/vec/utils/ftn-auto/vecmpitoseqf.c
-    src/vec/vec/utils/ftn-auto/projectionf.c
-    src/vec/vec/utils/ftn-auto/vscatf.c
+    src/vec/vec/utils/ftn-auto/vinvf.c
     src/vec/vec/utils/ftn-auto/vpscatf.c
+    src/vec/vec/utils/ftn-auto/vscatf.c
+    src/vec/vec/utils/ftn-auto/combf.c
+    src/vec/vec/utils/ftn-auto/cmeshf.c
+    src/vec/vec/utils/ftn-auto/projectionf.c
+    src/vec/vec/utils/ftn-auto/vecmpitoseqf.c
     src/vec/vec/utils/ftn-custom/zvscatf.c
     )
 endif ()
@@ -563,11 +545,6 @@ list (APPEND PETSCVEC_SRCS
   src/vec/is/utils/isltog.c
   src/vec/is/utils/pmap.c
   src/vec/is/utils/vsectionis.c
-  src/vec/is/sf/impls/basic/sfbasic.c
-  src/vec/is/sf/interface/dlregissf.c
-  src/vec/is/sf/interface/sfregi.c
-  src/vec/is/sf/interface/sf.c
-  src/vec/is/sf/interface/sftype.c
   src/vec/is/ao/impls/memscalable/aomemscalable.c
   src/vec/is/ao/impls/mapping/aomapping.c
   src/vec/is/ao/impls/basic/aobasic.c
@@ -575,6 +552,11 @@ list (APPEND PETSCVEC_SRCS
   src/vec/is/ao/interface/dlregisdm.c
   src/vec/is/ao/interface/aoreg.c
   src/vec/is/ao/interface/aoregall.c
+  src/vec/is/sf/impls/basic/sfbasic.c
+  src/vec/is/sf/interface/dlregissf.c
+  src/vec/is/sf/interface/sfregi.c
+  src/vec/is/sf/interface/sf.c
+  src/vec/is/sf/interface/sftype.c
   src/vec/pf/impls/constant/const.c
   src/vec/pf/impls/string/cstring.c
   src/vec/pf/interface/pf.c
@@ -684,11 +666,17 @@ list (APPEND PETSCMAT_SRCS
   src/mat/color/utils/weights.c
   src/mat/partition/partition.c
   src/mat/partition/spartition.c
-  src/mat/matfd/fdmatrix.c
   src/mat/coarsen/coarsen.c
   src/mat/coarsen/scoarsen.c
   src/mat/coarsen/impls/hem/hem.c
   src/mat/coarsen/impls/mis/mis.c
+  src/mat/interface/matrix.c
+  src/mat/interface/mhas.c
+  src/mat/interface/matreg.c
+  src/mat/interface/matregis.c
+  src/mat/interface/matnull.c
+  src/mat/interface/dlregismat.c
+  src/mat/matfd/fdmatrix.c
   src/mat/impls/submat/submat.c
   src/mat/impls/is/matis.c
   src/mat/impls/fft/fft.c
@@ -730,16 +718,17 @@ list (APPEND PETSCMAT_SRCS
   src/mat/impls/mffd/mffddef.c
   src/mat/impls/mffd/mfregis.c
   src/mat/impls/mffd/wp.c
-  src/mat/impls/python/pythonmat.c
+  src/mat/impls/composite/mcomposite.c
   src/mat/impls/adj/mpi/mpiadj.c
   src/mat/impls/maij/maij.c
   src/mat/impls/lrc/lrc.c
   src/mat/impls/shell/shell.c
   src/mat/impls/shell/shellcnv.c
   src/mat/impls/normal/normm.c
-  src/mat/impls/composite/mcomposite.c
+  src/mat/impls/python/pythonmat.c
   src/mat/impls/nest/matnest.c
   src/mat/impls/transpose/transm.c
+  src/mat/impls/transpose/htransm.c
   src/mat/impls/localref/mlocalref.c
   src/mat/impls/blockmat/seq/blockmat.c
   src/mat/impls/sbaij/seq/sbaij.c
@@ -779,8 +768,8 @@ list (APPEND PETSCMAT_SRCS
   src/mat/impls/aij/seq/mattransposematmult.c
   src/mat/impls/aij/seq/bas/basfactor.c
   src/mat/impls/aij/seq/bas/spbas.c
-  src/mat/impls/aij/seq/crl/crl.c
   src/mat/impls/aij/seq/csrperm/csrperm.c
+  src/mat/impls/aij/seq/crl/crl.c
   src/mat/impls/aij/mpi/mpiaij.c
   src/mat/impls/aij/mpi/mmaij.c
   src/mat/impls/aij/mpi/mpiaijpc.c
@@ -816,12 +805,6 @@ list (APPEND PETSCMAT_SRCS
   src/mat/order/qmdmrg.c
   src/mat/order/qmdupd.c
   src/mat/order/wbm.c
-  src/mat/interface/matrix.c
-  src/mat/interface/mhas.c
-  src/mat/interface/matreg.c
-  src/mat/interface/matregis.c
-  src/mat/interface/matnull.c
-  src/mat/interface/dlregismat.c
   src/mat/utils/convert.c
   src/mat/utils/matstash.c
   src/mat/utils/axpy.c
@@ -854,11 +837,6 @@ endif ()
 if (PETSC_HAVE_PARMETIS)
   list (APPEND PETSCMAT_SRCS
     src/mat/partition/impls/pmetis/pmetis.c
-    )
-endif ()
-if (PETSC_HAVE_PARTY)
-  list (APPEND PETSCMAT_SRCS
-    src/mat/partition/impls/party/party.c
     )
 endif ()
 if (PETSC_HAVE_FFTW AND PETSC_USE_REAL_DOUBLE)
@@ -946,24 +924,24 @@ if (PETSC_USE_FORTRAN_KERNELS)
     src/mat/impls/aij/seq/crl/ftn-kernels/fmultcrl.F
     )
 endif ()
+if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_MKL_CPARDISO)
+  list (APPEND PETSCMAT_SRCS
+    src/mat/impls/aij/mpi/mkl_cpardiso/ftn-auto/mkl_cpardisof.c
+    )
+endif ()
 if (PETSC_HAVE_PTSCOTCH)
   list (APPEND PETSCMAT_SRCS
     src/mat/partition/impls/scotch/scotch.c
     )
 endif ()
-if (PETSC_HAVE_CUSP)
-  list (APPEND PETSCMAT_SRCS
-    src/mat/impls/aij/seq/seqcusparse/aijcusparse.cu
-    src/mat/impls/aij/seq/seqcusp/aijcusp.cu
-    src/mat/impls/aij/seq/seqcusp/aijAssemble.cu
-    src/mat/impls/aij/mpi/mpicusp/mpiaijcusp.cu
-    src/mat/impls/aij/mpi/mpicusp/mpiaijAssemble.cu
-    src/mat/impls/aij/mpi/mpicusparse/mpiaijcusparse.cu
-    )
-endif ()
 if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_PTSCOTCH)
   list (APPEND PETSCMAT_SRCS
     src/mat/partition/impls/scotch/ftn-auto/scotchf.c
+    )
+endif ()
+if (PETSC_HAVE_PARTY)
+  list (APPEND PETSCMAT_SRCS
+    src/mat/partition/impls/party/party.c
     )
 endif ()
 if (PETSC_USING_F90)
@@ -985,10 +963,15 @@ if (PETSC_HAVE_CUDA AND PETSC_USE_REAL_SINGLE AND PETSC_USE_COMPLEX)
 endif ()
 if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_CUSP)
   list (APPEND PETSCMAT_SRCS
-    src/mat/impls/aij/seq/seqcusparse/ftn-auto/aijcusparsef.c
     src/mat/impls/aij/seq/seqcusp/ftn-auto/aijcuspf.c
+    src/mat/impls/aij/seq/seqcusparse/ftn-auto/aijcusparsef.c
     src/mat/impls/aij/mpi/mpicusp/ftn-auto/mpiaijcuspf.c
     src/mat/impls/aij/mpi/mpicusparse/ftn-auto/mpiaijcusparsef.c
+    )
+endif ()
+if (PETSC_HAVE_MKL_CPARDISO)
+  list (APPEND PETSCMAT_SRCS
+    src/mat/impls/aij/mpi/mkl_cpardiso/mkl_cpardiso.c
     )
 endif ()
 if (PETSC_HAVE_ELEMENTAL)
@@ -1008,12 +991,18 @@ if (PETSC_HAVE_FORTRAN)
     src/mat/color/interface/ftn-custom/zmatcoloringf.c
     src/mat/partition/ftn-auto/partitionf.c
     src/mat/partition/ftn-custom/zpartitionf.c
+    src/mat/coarsen/ftn-auto/coarsenf.c
+    src/mat/interface/ftn-auto/matnullf.c
+    src/mat/interface/ftn-auto/matrixf.c
+    src/mat/interface/ftn-auto/mhasf.c
+    src/mat/interface/ftn-custom/zmatregf.c
+    src/mat/interface/ftn-custom/zmatrixf.c
+    src/mat/interface/ftn-custom/zmatnullf.c
     src/mat/matfd/ftn-auto/fdmatrixf.c
     src/mat/matfd/ftn-custom/zfdmatrixf.c
-    src/mat/coarsen/ftn-auto/coarsenf.c
     src/mat/impls/submat/ftn-auto/submatf.c
     src/mat/impls/is/ftn-auto/matisf.c
-    src/mat/impls/fft/ftn-auto/fftf.c
+    src/mat/impls/fft/ftn-custom/zfftf.c
     src/mat/impls/baij/seq/ftn-auto/baijf.c
     src/mat/impls/baij/seq/ftn-custom/zbaijf.c
     src/mat/impls/baij/mpi/ftn-auto/mpibaijf.c
@@ -1021,20 +1010,22 @@ if (PETSC_HAVE_FORTRAN)
     src/mat/impls/dense/seq/ftn-custom/zdensef.c
     src/mat/impls/dense/mpi/ftn-auto/mpidensef.c
     src/mat/impls/dense/mpi/ftn-custom/zmpidensef.c
-    src/mat/impls/mffd/ftn-auto/mffdf.c
     src/mat/impls/mffd/ftn-auto/mffddeff.c
     src/mat/impls/mffd/ftn-auto/wpf.c
+    src/mat/impls/mffd/ftn-auto/mffdf.c
     src/mat/impls/mffd/ftn-custom/zmffdf.c
-    src/mat/impls/python/ftn-custom/zpythonmf.c
+    src/mat/impls/composite/ftn-auto/mcompositef.c
     src/mat/impls/adj/mpi/ftn-auto/mpiadjf.c
     src/mat/impls/adj/mpi/ftn-custom/zmpiadjf.c
+    src/mat/impls/maij/ftn-auto/maijf.c
     src/mat/impls/lrc/ftn-auto/lrcf.c
     src/mat/impls/shell/ftn-auto/shellf.c
     src/mat/impls/shell/ftn-custom/zshellf.c
     src/mat/impls/normal/ftn-auto/normmf.c
-    src/mat/impls/composite/ftn-auto/mcompositef.c
+    src/mat/impls/python/ftn-custom/zpythonmf.c
     src/mat/impls/nest/ftn-auto/matnestf.c
     src/mat/impls/nest/ftn-custom/zmatnestf.c
+    src/mat/impls/transpose/ftn-auto/htransmf.c
     src/mat/impls/transpose/ftn-auto/transmf.c
     src/mat/impls/localref/ftn-auto/mlocalreff.c
     src/mat/impls/sbaij/seq/ftn-auto/sbaijf.c
@@ -1048,18 +1039,12 @@ if (PETSC_HAVE_FORTRAN)
     src/mat/impls/scatter/ftn-auto/mscatterf.c
     src/mat/order/ftn-auto/spectralf.c
     src/mat/order/ftn-custom/zsorderf.c
-    src/mat/interface/ftn-auto/matnullf.c
-    src/mat/interface/ftn-auto/matrixf.c
-    src/mat/interface/ftn-auto/mhasf.c
-    src/mat/interface/ftn-custom/zmatregf.c
-    src/mat/interface/ftn-custom/zmatrixf.c
-    src/mat/interface/ftn-custom/zmatnullf.c
-    src/mat/utils/ftn-auto/getcolvf.c
-    src/mat/utils/ftn-auto/multequalf.c
-    src/mat/utils/ftn-auto/bandwidthf.c
     src/mat/utils/ftn-auto/gcreatef.c
-    src/mat/utils/ftn-auto/axpyf.c
+    src/mat/utils/ftn-auto/getcolvf.c
+    src/mat/utils/ftn-auto/bandwidthf.c
     src/mat/utils/ftn-auto/zerodiagf.c
+    src/mat/utils/ftn-auto/multequalf.c
+    src/mat/utils/ftn-auto/axpyf.c
     )
 endif ()
 if (PETSC_HAVE_MUMPS)
@@ -1070,6 +1055,16 @@ endif ()
 if (PETSC_HAVE_SUPERLU)
   list (APPEND PETSCMAT_SRCS
     src/mat/impls/aij/seq/superlu/superlu.c
+    )
+endif ()
+if (PETSC_HAVE_CUSP)
+  list (APPEND PETSCMAT_SRCS
+    src/mat/impls/aij/seq/seqcusp/aijcusp.cu
+    src/mat/impls/aij/seq/seqcusp/aijAssemble.cu
+    src/mat/impls/aij/seq/seqcusparse/aijcusparse.cu
+    src/mat/impls/aij/mpi/mpicusp/mpiaijcusp.cu
+    src/mat/impls/aij/mpi/mpicusp/mpiaijAssemble.cu
+    src/mat/impls/aij/mpi/mpicusparse/mpiaijcusparse.cu
     )
 endif ()
 
@@ -1103,22 +1098,24 @@ if (PETSC_HAVE_FORTRAN)
     src/dm/impls/network/ftn-auto/networkcreatef.c
     src/dm/impls/composite/ftn-auto/packf.c
     src/dm/impls/composite/ftn-custom/zfddaf.c
-    src/dm/impls/da/ftn-auto/daf.c
-    src/dm/impls/da/ftn-auto/daindexf.c
+    src/dm/impls/patch/ftn-auto/patchcreatef.c
+    src/dm/impls/redundant/ftn-auto/dmredundantf.c
+    src/dm/impls/da/ftn-auto/dacreatef.c
     src/dm/impls/da/ftn-auto/dagtolf.c
     src/dm/impls/da/ftn-auto/dadistf.c
-    src/dm/impls/da/ftn-auto/dacreatef.c
-    src/dm/impls/da/ftn-auto/dageometryf.c
-    src/dm/impls/da/ftn-auto/dapreallocatef.c
-    src/dm/impls/da/ftn-auto/dagetarrayf.c
-    src/dm/impls/da/ftn-auto/daddf.c
+    src/dm/impls/da/ftn-auto/daindexf.c
     src/dm/impls/da/ftn-auto/dagtonaf.c
     src/dm/impls/da/ftn-auto/dalocalf.c
-    src/dm/impls/da/ftn-auto/dacornf.c
-    src/dm/impls/da/ftn-auto/dainterpf.c
     src/dm/impls/da/ftn-auto/fddaf.c
+    src/dm/impls/da/ftn-auto/daddf.c
     src/dm/impls/da/ftn-auto/daghostf.c
+    src/dm/impls/da/ftn-auto/dagetarrayf.c
+    src/dm/impls/da/ftn-auto/dacornf.c
+    src/dm/impls/da/ftn-auto/daf.c
+    src/dm/impls/da/ftn-auto/dapreallocatef.c
     src/dm/impls/da/ftn-auto/gr1f.c
+    src/dm/impls/da/ftn-auto/dainterpf.c
+    src/dm/impls/da/ftn-auto/dageometryf.c
     src/dm/impls/da/ftn-custom/zdaf.c
     src/dm/impls/da/ftn-custom/zda1f.c
     src/dm/impls/da/ftn-custom/zda2f.c
@@ -1126,35 +1123,44 @@ if (PETSC_HAVE_FORTRAN)
     src/dm/impls/da/ftn-custom/zdacornf.c
     src/dm/impls/da/ftn-custom/zdagetscatterf.c
     src/dm/impls/da/ftn-custom/zdaviewf.c
-    src/dm/impls/redundant/ftn-auto/dmredundantf.c
-    src/dm/impls/patch/ftn-auto/patchcreatef.c
-    src/dm/impls/plex/ftn-auto/plexgmshf.c
-    src/dm/impls/plex/ftn-auto/plexdistributef.c
-    src/dm/impls/plex/ftn-auto/plexf.c
-    src/dm/impls/plex/ftn-auto/plexrefinef.c
-    src/dm/impls/plex/ftn-auto/plexcgnsf.c
-    src/dm/impls/plex/ftn-auto/plexinterpolatef.c
-    src/dm/impls/plex/ftn-auto/plexcreatef.c
-    src/dm/impls/plex/ftn-auto/plexfemf.c
-    src/dm/impls/plex/ftn-auto/plexreorderf.c
-    src/dm/impls/plex/ftn-auto/plexsubmeshf.c
+    src/dm/impls/plex/ftn-auto/plexgeneratef.c
+    src/dm/impls/plex/ftn-auto/plexpartitionf.c
     src/dm/impls/plex/ftn-auto/plexexodusiif.c
+    src/dm/impls/plex/ftn-auto/plexbcf.c
     src/dm/impls/plex/ftn-auto/plexindicesf.c
+    src/dm/impls/plex/ftn-auto/plexreorderf.c
+    src/dm/impls/plex/ftn-auto/plexgmshf.c
+    src/dm/impls/plex/ftn-auto/plexrefinef.c
+    src/dm/impls/plex/ftn-auto/plexf.c
+    src/dm/impls/plex/ftn-auto/plexorientf.c
+    src/dm/impls/plex/ftn-auto/plexcgnsf.c
+    src/dm/impls/plex/ftn-auto/plexgeometryf.c
+    src/dm/impls/plex/ftn-auto/plexsubmeshf.c
+    src/dm/impls/plex/ftn-auto/plexcreatef.c
+    src/dm/impls/plex/ftn-auto/plextreef.c
+    src/dm/impls/plex/ftn-auto/plexdistributef.c
     src/dm/impls/plex/ftn-auto/plexpointf.c
+    src/dm/impls/plex/ftn-auto/plexinterpolatef.c
+    src/dm/impls/plex/ftn-auto/plexfemf.c
     src/dm/impls/plex/ftn-auto/plexlabelf.c
     src/dm/impls/plex/ftn-custom/zplex.c
+    src/dm/impls/plex/ftn-custom/zplexcreate.c
+    src/dm/impls/plex/ftn-custom/zplexdistribute.c
     src/dm/impls/plex/ftn-custom/zplexinterpolate.c
     src/dm/impls/plex/ftn-custom/zplexsubmesh.c
     src/dm/impls/plex/ftn-custom/zplexlabel.c
     src/dm/impls/plex/ftn-custom/zplexexodusii.c
-    src/dm/interface/ftn-auto/dmf.c
+    src/dm/impls/plex/ftn-custom/zplexgmsh.c
+    src/dm/impls/plex/ftn-custom/zplexfluent.c
     src/dm/interface/ftn-auto/dmgetf.c
+    src/dm/interface/ftn-auto/dmf.c
     src/dm/interface/ftn-custom/zdmf.c
     src/dm/interface/ftn-custom/zdmgetf.c
-    src/dm/dt/interface/ftn-auto/dtfef.c
     src/dm/dt/interface/ftn-auto/dtdsf.c
-    src/dm/dt/interface/ftn-auto/dtf.c
     src/dm/dt/interface/ftn-auto/dtfvf.c
+    src/dm/dt/interface/ftn-auto/dtfef.c
+    src/dm/dt/interface/ftn-auto/dtf.c
+    src/dm/dt/interface/ftn-custom/zdtf.c
     )
 endif ()
 list (APPEND PETSCDM_SRCS
@@ -1163,6 +1169,9 @@ list (APPEND PETSCDM_SRCS
   src/dm/impls/network/network.c
   src/dm/impls/composite/pack.c
   src/dm/impls/composite/packm.c
+  src/dm/impls/patch/patchcreate.c
+  src/dm/impls/patch/patch.c
+  src/dm/impls/redundant/dmredundant.c
   src/dm/impls/da/da2.c
   src/dm/impls/da/da1.c
   src/dm/impls/da/da3.c
@@ -1192,9 +1201,6 @@ list (APPEND PETSCDM_SRCS
   src/dm/impls/da/dageometry.c
   src/dm/impls/da/dadd.c
   src/dm/impls/da/dapreallocate.c
-  src/dm/impls/redundant/dmredundant.c
-  src/dm/impls/patch/patchcreate.c
-  src/dm/impls/patch/patch.c
   src/dm/impls/sliced/sliced.c
   src/dm/impls/plex/plexcreate.c
   src/dm/impls/plex/plex.c
@@ -1210,12 +1216,17 @@ list (APPEND PETSCDM_SRCS
   src/dm/impls/plex/plexhdf5.c
   src/dm/impls/plex/plexexodusii.c
   src/dm/impls/plex/plexgmsh.c
+  src/dm/impls/plex/plexfluent.c
   src/dm/impls/plex/plexcgns.c
   src/dm/impls/plex/plexvtk.c
   src/dm/impls/plex/plexpoint.c
   src/dm/impls/plex/plexvtu.c
   src/dm/impls/plex/plexfem.c
   src/dm/impls/plex/plexindices.c
+  src/dm/impls/plex/plexbc.c
+  src/dm/impls/plex/plextree.c
+  src/dm/impls/plex/plexgenerate.c
+  src/dm/impls/plex/plexorient.c
   src/dm/interface/dm.c
   src/dm/interface/dmregall.c
   src/dm/interface/dmget.c
@@ -1241,6 +1252,9 @@ if (PETSC_USING_F90)
     src/dm/impls/composite/f90-custom/zfddaf90.c
     src/dm/impls/da/f90-custom/zda1f90.c
     src/dm/impls/plex/f90-custom/zplexf90.c
+    src/dm/impls/plex/f90-custom/zplexgeometryf90.c
+    src/dm/dt/interface/f90-custom/zdtf90.c
+    src/dm/dt/interface/f90-custom/zdtdsf90.c
     src/dm/f90-mod/petscdmmod.F
     )
 endif ()
@@ -1259,6 +1273,7 @@ if (NOT PETSC_USE_SINGLE_LIBRARY)
 endif ()
 if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_HYPRE AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
   list (APPEND PETSCKSP_SRCS
+    src/ksp/pc/impls/hypre/ftn-auto/hypref.c
     src/ksp/pc/impls/hypre/ftn-custom/zhypref.c
     )
 endif ()
@@ -1286,65 +1301,68 @@ if (PETSC_HAVE_PARMS AND PETSC_USE_REAL_DOUBLE)
 endif ()
 if (PETSC_HAVE_FORTRAN)
   list (APPEND PETSCKSP_SRCS
-    src/ksp/pc/impls/eisens/ftn-auto/eisenf.c
+    src/ksp/pc/impls/bddc/ftn-auto/bddcf.c
+    src/ksp/pc/impls/bjacobi/ftn-auto/bjacobif.c
+    src/ksp/pc/impls/bjacobi/ftn-custom/zbjacobif.c
     src/ksp/pc/impls/is/ftn-auto/pcisf.c
-    src/ksp/pc/impls/mg/ftn-auto/mgf.c
-    src/ksp/pc/impls/mg/ftn-auto/mgfuncf.c
-    src/ksp/pc/impls/mg/ftn-custom/zmgf.c
-    src/ksp/pc/impls/mg/ftn-custom/zmgfuncf.c
     src/ksp/pc/impls/sor/ftn-auto/sorf.c
     src/ksp/pc/impls/wb/ftn-auto/wbf.c
     src/ksp/pc/impls/ksp/ftn-auto/pckspf.c
-    src/ksp/pc/impls/bjacobi/ftn-auto/bjacobif.c
-    src/ksp/pc/impls/bjacobi/ftn-custom/zbjacobif.c
-    src/ksp/pc/impls/python/ftn-custom/zpythonpcf.c
-    src/ksp/pc/impls/asm/ftn-auto/asmf.c
-    src/ksp/pc/impls/asm/ftn-custom/zasmf.c
+    src/ksp/pc/impls/composite/ftn-auto/compositef.c
+    src/ksp/pc/impls/composite/ftn-custom/zcompositef.c
     src/ksp/pc/impls/factor/ftn-custom/zluf.c
     src/ksp/pc/impls/factor/cholesky/ftn-auto/choleskyf.c
     src/ksp/pc/impls/factor/ftn-auto/factorf.c
-    src/ksp/pc/impls/jacobi/ftn-auto/jacobif.c
+    src/ksp/pc/impls/eisens/ftn-auto/eisenf.c
     src/ksp/pc/impls/galerkin/ftn-auto/galerkinf.c
     src/ksp/pc/impls/shell/ftn-auto/shellpcf.c
     src/ksp/pc/impls/shell/ftn-custom/zshellpcf.c
     src/ksp/pc/impls/gasm/ftn-auto/gasmf.c
-    src/ksp/pc/impls/composite/ftn-auto/compositef.c
-    src/ksp/pc/impls/composite/ftn-custom/zcompositef.c
-    src/ksp/pc/impls/redistribute/ftn-auto/redistributef.c
+    src/ksp/pc/impls/python/ftn-custom/zpythonpcf.c
+    src/ksp/pc/impls/mg/ftn-auto/mgfuncf.c
+    src/ksp/pc/impls/mg/ftn-auto/mgf.c
+    src/ksp/pc/impls/mg/ftn-custom/zmgf.c
+    src/ksp/pc/impls/mg/ftn-custom/zmgfuncf.c
     src/ksp/pc/impls/gamg/ftn-auto/aggf.c
     src/ksp/pc/impls/gamg/ftn-auto/gamgf.c
+    src/ksp/pc/impls/jacobi/ftn-auto/jacobif.c
     src/ksp/pc/impls/fieldsplit/ftn-auto/fieldsplitf.c
     src/ksp/pc/impls/fieldsplit/ftn-custom/zfieldsplitf.c
+    src/ksp/pc/impls/asm/ftn-auto/asmf.c
+    src/ksp/pc/impls/asm/ftn-custom/zasmf.c
+    src/ksp/pc/impls/redistribute/ftn-auto/redistributef.c
     src/ksp/pc/impls/redundant/ftn-auto/redundantf.c
     src/ksp/pc/interface/ftn-auto/preconf.c
     src/ksp/pc/interface/ftn-auto/pcsetf.c
     src/ksp/pc/interface/ftn-custom/zpcsetf.c
     src/ksp/pc/interface/ftn-custom/zpreconf.c
-    src/ksp/ksp/impls/bcgsl/ftn-auto/bcgslf.c
-    src/ksp/ksp/impls/rich/ftn-auto/richscalef.c
-    src/ksp/ksp/impls/python/ftn-custom/zpythonkspf.c
     src/ksp/ksp/impls/cg/gltr/ftn-auto/gltrf.c
     src/ksp/ksp/impls/cg/stcg/ftn-auto/stcgf.c
     src/ksp/ksp/impls/cg/ftn-auto/cgtypef.c
     src/ksp/ksp/impls/cg/nash/ftn-auto/nashf.c
+    src/ksp/ksp/impls/cheby/ftn-auto/chebyf.c
+    src/ksp/ksp/impls/fcg/ftn-auto/fcgf.c
+    src/ksp/ksp/impls/python/ftn-custom/zpythonkspf.c
+    src/ksp/ksp/impls/bcgsl/ftn-auto/bcgslf.c
     src/ksp/ksp/impls/qcg/ftn-auto/qcgf.c
+    src/ksp/ksp/impls/rich/ftn-auto/richscalef.c
     src/ksp/ksp/impls/gmres/ftn-auto/gmresf.c
     src/ksp/ksp/impls/gmres/ftn-auto/gmpref.c
     src/ksp/ksp/impls/gmres/fgmres/ftn-auto/modpcff.c
     src/ksp/ksp/impls/gmres/fgmres/ftn-custom/zmodpcff.c
-    src/ksp/ksp/impls/cheby/ftn-auto/chebyf.c
-    src/ksp/ksp/interface/ftn-auto/itclf.c
     src/ksp/ksp/interface/ftn-auto/itcreatef.c
-    src/ksp/ksp/interface/ftn-auto/iterativf.c
     src/ksp/ksp/interface/ftn-auto/eigef.c
-    src/ksp/ksp/interface/ftn-auto/xmonf.c
-    src/ksp/ksp/interface/ftn-auto/itresf.c
     src/ksp/ksp/interface/ftn-auto/itfuncf.c
+    src/ksp/ksp/interface/ftn-auto/iterativf.c
+    src/ksp/ksp/interface/ftn-auto/xmonf.c
+    src/ksp/ksp/interface/ftn-auto/itclf.c
+    src/ksp/ksp/interface/ftn-auto/itresf.c
     src/ksp/ksp/interface/ftn-custom/zitclf.c
     src/ksp/ksp/interface/ftn-custom/zitcreatef.c
     src/ksp/ksp/interface/ftn-custom/zitfuncf.c
     src/ksp/ksp/interface/ftn-custom/zxonf.c
     src/ksp/ksp/interface/ftn-custom/zdmkspf.c
+    src/ksp/ksp/utils/ftn-auto/dmprojectf.c
     src/ksp/ksp/utils/ftn-auto/schurmf.c
     )
 endif ()
@@ -1364,59 +1382,60 @@ if (PETSC_HAVE_HYPRE AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
     )
 endif ()
 list (APPEND PETSCKSP_SRCS
-  src/ksp/pc/impls/eisens/eisen.c
+  src/ksp/pc/impls/bddc/bddc.c
+  src/ksp/pc/impls/bddc/bddcprivate.c
+  src/ksp/pc/impls/bddc/bddcgraph.c
+  src/ksp/pc/impls/bddc/bddcscalingbasic.c
+  src/ksp/pc/impls/bddc/bddcnullspace.c
+  src/ksp/pc/impls/bddc/bddcfetidp.c
+  src/ksp/pc/impls/bddc/bddcschurs.c
   src/ksp/pc/impls/lsc/lsc.c
+  src/ksp/pc/impls/bjacobi/bjacobi.c
   src/ksp/pc/impls/is/pcis.c
   src/ksp/pc/impls/is/nn/nn.c
-  src/ksp/pc/impls/mg/mg.c
-  src/ksp/pc/impls/mg/fmg.c
-  src/ksp/pc/impls/mg/smg.c
-  src/ksp/pc/impls/mg/mgfunc.c
+  src/ksp/pc/impls/none/none.c
   src/ksp/pc/impls/sor/sor.c
   src/ksp/pc/impls/pbjacobi/pbjacobi.c
-  src/ksp/pc/impls/cp/cp.c
   src/ksp/pc/impls/wb/wb.c
+  src/ksp/pc/impls/cp/cp.c
   src/ksp/pc/impls/ksp/pcksp.c
-  src/ksp/pc/impls/bjacobi/bjacobi.c
-  src/ksp/pc/impls/python/pythonpc.c
-  src/ksp/pc/impls/asm/asm.c
+  src/ksp/pc/impls/composite/composite.c
   src/ksp/pc/impls/factor/factor.c
   src/ksp/pc/impls/factor/factimpl.c
   src/ksp/pc/impls/factor/cholesky/cholesky.c
   src/ksp/pc/impls/factor/ilu/ilu.c
   src/ksp/pc/impls/factor/icc/icc.c
   src/ksp/pc/impls/factor/lu/lu.c
-  src/ksp/pc/impls/jacobi/jacobi.c
+  src/ksp/pc/impls/eisens/eisen.c
   src/ksp/pc/impls/kaczmarz/kaczmarz.c
   src/ksp/pc/impls/galerkin/galerkin.c
   src/ksp/pc/impls/shell/shellpc.c
   src/ksp/pc/impls/gasm/gasm.c
   src/ksp/pc/impls/mat/pcmat.c
-  src/ksp/pc/impls/composite/composite.c
-  src/ksp/pc/impls/redistribute/redistribute.c
+  src/ksp/pc/impls/python/pythonpc.c
+  src/ksp/pc/impls/mg/mg.c
+  src/ksp/pc/impls/mg/fmg.c
+  src/ksp/pc/impls/mg/smg.c
+  src/ksp/pc/impls/mg/mgfunc.c
   src/ksp/pc/impls/gamg/gamg.c
   src/ksp/pc/impls/gamg/agg.c
   src/ksp/pc/impls/gamg/geo.c
   src/ksp/pc/impls/gamg/tools.c
   src/ksp/pc/impls/gamg/classical.c
+  src/ksp/pc/impls/jacobi/jacobi.c
   src/ksp/pc/impls/fieldsplit/fieldsplit.c
-  src/ksp/pc/impls/none/none.c
+  src/ksp/pc/impls/asm/asm.c
+  src/ksp/pc/impls/redistribute/redistribute.c
   src/ksp/pc/impls/svd/svd.c
   src/ksp/pc/impls/redundant/redundant.c
   src/ksp/pc/interface/precon.c
   src/ksp/pc/interface/pcset.c
   src/ksp/pc/interface/pcregis.c
   src/ksp/ksp/impls/symmlq/symmlq.c
-  src/ksp/ksp/impls/bcgsl/bcgsl.c
-  src/ksp/ksp/impls/rich/rich.c
-  src/ksp/ksp/impls/rich/richscale.c
-  src/ksp/ksp/impls/tfqmr/tfqmr.c
-  src/ksp/ksp/impls/python/pythonksp.c
-  src/ksp/ksp/impls/bicg/bicg.c
-  src/ksp/ksp/impls/lsqr/lsqr.c
-  src/ksp/ksp/impls/lsqr/lsqr_monitor.c
-  src/ksp/ksp/impls/lsqr/lsqr_converged.c
   src/ksp/ksp/impls/ibcgs/ibcgs.c
+  src/ksp/ksp/impls/bicg/bicg.c
+  src/ksp/ksp/impls/preonly/preonly.c
+  src/ksp/ksp/impls/tfqmr/tfqmr.c
   src/ksp/ksp/impls/cg/cg.c
   src/ksp/ksp/impls/cg/cgeig.c
   src/ksp/ksp/impls/cg/cgtype.c
@@ -1426,15 +1445,20 @@ list (APPEND PETSCKSP_SRCS
   src/ksp/ksp/impls/cg/groppcg/groppcg.c
   src/ksp/ksp/impls/cg/nash/nash.c
   src/ksp/ksp/impls/cg/pipecg/pipecg.c
-  src/ksp/ksp/impls/bcgs/bcgs.c
-  src/ksp/ksp/impls/bcgs/fbcgs/fbcgs.c
-  src/ksp/ksp/impls/bcgs/fbcgsr/fbcgsr.c
+  src/ksp/ksp/impls/cheby/cheby.c
+  src/ksp/ksp/impls/lsqr/lsqr.c
+  src/ksp/ksp/impls/lsqr/lsqr_monitor.c
+  src/ksp/ksp/impls/lsqr/lsqr_converged.c
+  src/ksp/ksp/impls/fcg/fcg.c
   src/ksp/ksp/impls/tcqmr/tcqmr.c
+  src/ksp/ksp/impls/python/pythonksp.c
+  src/ksp/ksp/impls/bcgsl/bcgsl.c
   src/ksp/ksp/impls/lcd/lcd.c
   src/ksp/ksp/impls/gcr/gcr.c
   src/ksp/ksp/impls/qcg/qcg.c
   src/ksp/ksp/impls/minres/minres.c
-  src/ksp/ksp/impls/preonly/preonly.c
+  src/ksp/ksp/impls/rich/rich.c
+  src/ksp/ksp/impls/rich/richscale.c
   src/ksp/ksp/impls/gmres/gmres.c
   src/ksp/ksp/impls/gmres/borthog.c
   src/ksp/ksp/impls/gmres/borthog2.c
@@ -1445,11 +1469,12 @@ list (APPEND PETSCKSP_SRCS
   src/ksp/ksp/impls/gmres/pgmres/pgmres.c
   src/ksp/ksp/impls/gmres/fgmres/fgmres.c
   src/ksp/ksp/impls/gmres/fgmres/modpcf.c
-  src/ksp/ksp/impls/specest/specest.c
   src/ksp/ksp/impls/cr/cr.c
   src/ksp/ksp/impls/cr/pipecr/pipecr.c
   src/ksp/ksp/impls/cgs/cgs.c
-  src/ksp/ksp/impls/cheby/cheby.c
+  src/ksp/ksp/impls/bcgs/bcgs.c
+  src/ksp/ksp/impls/bcgs/fbcgs/fbcgs.c
+  src/ksp/ksp/impls/bcgs/fbcgsr/fbcgsr.c
   src/ksp/ksp/interface/itcl.c
   src/ksp/ksp/interface/itfunc.c
   src/ksp/ksp/interface/iguess.c
@@ -1462,34 +1487,14 @@ list (APPEND PETSCKSP_SRCS
   src/ksp/ksp/interface/dlregisksp.c
   src/ksp/ksp/interface/dmksp.c
   src/ksp/ksp/utils/schurm.c
+  src/ksp/ksp/utils/dmproject.c
   )
-if (PETSC_HAVE_CUSP_SMOOTHED_AGGREGATION)
+if (PETSC_HAVE_CUSP)
   list (APPEND PETSCKSP_SRCS
     src/ksp/pc/impls/bicgstabcusp/bicgstabcusp.cu
     src/ksp/pc/impls/ainvcusp/ainvcusp.cu
     src/ksp/pc/impls/sacusp/sacusp.cu
     src/ksp/pc/impls/sacusp/sacusppoly.cu
-    )
-endif ()
-if (PETSC_HAVE_PCBDDC)
-  list (APPEND PETSCKSP_SRCS
-    src/ksp/pc/impls/bddc/bddc.c
-    src/ksp/pc/impls/bddc/bddcprivate.c
-    src/ksp/pc/impls/bddc/bddcgraph.c
-    src/ksp/pc/impls/bddc/bddcscalingbasic.c
-    src/ksp/pc/impls/bddc/bddcnullspace.c
-    src/ksp/pc/impls/bddc/bddcfetidp.c
-    )
-endif ()
-if (PETSC_HAVE_ML AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
-  list (APPEND PETSCKSP_SRCS
-    src/ksp/pc/impls/ml/ml.c
-    )
-endif ()
-if (PETSC_USING_F90)
-  list (APPEND PETSCKSP_SRCS
-    src/ksp/ksp/interface/f90-custom/zitfuncf90.c
-    src/ksp/f90-mod/petsckspmod.F
     )
 endif ()
 if (PETSC_HAVE_SPAI AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
@@ -1498,9 +1503,15 @@ if (PETSC_HAVE_SPAI AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
     src/ksp/pc/impls/spai/dspai.c
     )
 endif ()
-if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_PCBDDC)
+if (PETSC_USING_F90)
   list (APPEND PETSCKSP_SRCS
-    src/ksp/pc/impls/bddc/ftn-auto/bddcf.c
+    src/ksp/ksp/interface/f90-custom/zitfuncf90.c
+    src/ksp/f90-mod/petsckspmod.F
+    )
+endif ()
+if (PETSC_HAVE_ML AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
+  list (APPEND PETSCKSP_SRCS
+    src/ksp/pc/impls/ml/ml.c
     )
 endif ()
 
@@ -1526,24 +1537,26 @@ endif ()
 if (PETSC_HAVE_FORTRAN)
   list (APPEND PETSCSNES_SRCS
     src/snes/mf/ftn-auto/snesmfjf.c
+    src/snes/utils/ftn-auto/dmplexsnesf.c
     src/snes/interface/ftn-auto/snesf.c
+    src/snes/interface/ftn-auto/snesutf.c
     src/snes/interface/ftn-auto/snespcf.c
     src/snes/interface/ftn-custom/zsnesf.c
     src/snes/impls/ncg/ftn-auto/snesncgf.c
     src/snes/impls/shell/ftn-auto/snesshellf.c
     src/snes/impls/shell/ftn-custom/zsnesshellf.c
     src/snes/impls/gs/ftn-auto/snesgsf.c
-    src/snes/impls/ngmres/ftn-auto/snesngmresf.c
-    src/snes/impls/composite/ftn-auto/snescompositef.c
-    src/snes/impls/fas/ftn-auto/fasfuncf.c
-    src/snes/impls/fas/ftn-auto/fasgalerkinf.c
-    src/snes/impls/fas/ftn-auto/fasf.c
     src/snes/impls/python/ftn-custom/zpythonsf.c
     src/snes/impls/vi/ftn-auto/vif.c
-    src/snes/impls/nasm/ftn-auto/nasmf.c
+    src/snes/impls/composite/ftn-auto/snescompositef.c
+    src/snes/impls/ngmres/ftn-auto/snesngmresf.c
+    src/snes/impls/fas/ftn-auto/fasf.c
+    src/snes/impls/fas/ftn-auto/fasfuncf.c
+    src/snes/impls/fas/ftn-auto/fasgalerkinf.c
     src/snes/impls/qn/ftn-auto/qnf.c
-    src/snes/linesearch/impls/bt/ftn-auto/linesearchbtf.c
+    src/snes/impls/nasm/ftn-auto/nasmf.c
     src/snes/linesearch/impls/shell/ftn-custom/zlinesearchshellf.c
+    src/snes/linesearch/impls/bt/ftn-auto/linesearchbtf.c
     src/snes/linesearch/interface/ftn-auto/linesearchf.c
     src/snes/linesearch/interface/ftn-custom/zlinesearchf.c
     )
@@ -1555,6 +1568,7 @@ if (PETSC_HAVE_SAWS)
 endif ()
 if (PETSC_USING_F90)
   list (APPEND PETSCSNES_SRCS
+    src/snes/utils/f90-custom/zdmplexsnesf90.c
     src/snes/interface/f90-custom/zsnesf90.c
     src/snes/f90-mod/petscsnesmod.F
     )
@@ -1580,31 +1594,32 @@ list (APPEND PETSCSNES_SRCS
   src/snes/impls/shell/snesshell.c
   src/snes/impls/gs/snesgs.c
   src/snes/impls/gs/gssecant.c
-  src/snes/impls/ngmres/snesngmres.c
-  src/snes/impls/ngmres/ngmresfunc.c
-  src/snes/impls/ngmres/anderson.c
-  src/snes/impls/composite/snescomposite.c
-  src/snes/impls/fas/fas.c
-  src/snes/impls/fas/fasgalerkin.c
-  src/snes/impls/fas/fasfunc.c
-  src/snes/impls/ksponly/ksponly.c
-  src/snes/impls/tr/tr.c
-  src/snes/impls/python/pythonsnes.c
-  src/snes/impls/ls/ls.c
   src/snes/impls/ms/ms.c
+  src/snes/impls/python/pythonsnes.c
   src/snes/impls/vi/vi.c
   src/snes/impls/vi/ss/viss.c
   src/snes/impls/vi/rs/virs.c
+  src/snes/impls/ksponly/ksponly.c
+  src/snes/impls/tr/tr.c
+  src/snes/impls/composite/snescomposite.c
+  src/snes/impls/ls/ls.c
+  src/snes/impls/ngmres/snesngmres.c
+  src/snes/impls/ngmres/ngmresfunc.c
+  src/snes/impls/ngmres/anderson.c
+  src/snes/impls/fas/fas.c
+  src/snes/impls/fas/fasgalerkin.c
+  src/snes/impls/fas/fasfunc.c
   src/snes/impls/test/snestest.c
   src/snes/impls/richardson/snesrichardson.c
+  src/snes/impls/qn/qn.c
   src/snes/impls/nasm/nasm.c
   src/snes/impls/nasm/aspin.c
-  src/snes/impls/qn/qn.c
-  src/snes/linesearch/impls/bt/linesearchbt.c
   src/snes/linesearch/impls/shell/linesearchshell.c
-  src/snes/linesearch/impls/cp/linesearchcp.c
+  src/snes/linesearch/impls/bt/linesearchbt.c
   src/snes/linesearch/impls/l2/linesearchl2.c
   src/snes/linesearch/impls/basic/linesearchbasic.c
+  src/snes/linesearch/impls/cp/linesearchcp.c
+  src/snes/linesearch/impls/nleqerr/linesearchnleqerr.c
   src/snes/linesearch/interface/linesearch.c
   src/snes/linesearch/interface/linesearchregi.c
   )
@@ -1636,20 +1651,22 @@ if (PETSC_HAVE_SUNDIALS AND PETSC_USE_REAL_DOUBLE AND NOT PETSC_USE_COMPLEX)
 endif ()
 if (PETSC_HAVE_FORTRAN)
   list (APPEND PETSCTS_SRCS
+    src/ts/trajectory/interface/ftn-auto/trajf.c
     src/ts/utils/ftn-auto/dmplextsf.c
+    src/ts/event/ftn-auto/tseventf.c
     src/ts/interface/ftn-auto/tsf.c
     src/ts/interface/ftn-custom/ztscreatef.c
     src/ts/interface/ftn-custom/ztsf.c
     src/ts/interface/ftn-custom/ztsregf.c
+    src/ts/adapt/interface/ftn-auto/tsadaptf.c
     src/ts/impls/python/ftn-custom/zpythontf.c
+    src/ts/impls/pseudo/ftn-auto/posindepf.c
     src/ts/impls/explicit/ssp/ftn-auto/sspf.c
     src/ts/impls/explicit/ssp/ftn-custom/zsspf.c
-    src/ts/impls/pseudo/ftn-auto/posindepf.c
     src/ts/impls/arkimex/ftn-custom/zarkimexf.c
     src/ts/impls/rosw/ftn-custom/zroswf.c
     src/ts/impls/implicit/theta/ftn-auto/thetaf.c
     src/ts/impls/implicit/alpha/ftn-auto/alphaf.c
-    src/ts/adapt/interface/ftn-auto/tsadaptf.c
     )
 endif ()
 if (PETSC_HAVE_FORTRAN AND NOT PETSC_USE_COMPLEX)
@@ -1664,6 +1681,9 @@ if (PETSC_HAVE_FORTRAN AND PETSC_HAVE_SUNDIALS AND PETSC_USE_REAL_DOUBLE AND NOT
     )
 endif ()
 list (APPEND PETSCTS_SRCS
+  src/ts/trajectory/impls/singlefile/singlefile.c
+  src/ts/trajectory/impls/basic/trajbasic.c
+  src/ts/trajectory/interface/traj.c
   src/ts/utils/dmts.c
   src/ts/utils/dmlocalts.c
   src/ts/utils/dmdats.c
@@ -1675,11 +1695,16 @@ list (APPEND PETSCTS_SRCS
   src/ts/interface/tsregall.c
   src/ts/interface/dlregists.c
   src/ts/interface/tseig.c
+  src/ts/adapt/impls/cfl/adaptcfl.c
+  src/ts/adapt/impls/none/adaptnone.c
+  src/ts/adapt/impls/basic/adaptbasic.c
+  src/ts/adapt/interface/tsadapt.c
   src/ts/impls/python/pythonts.c
+  src/ts/impls/pseudo/posindep.c
   src/ts/impls/explicit/ssp/ssp.c
   src/ts/impls/explicit/euler/euler.c
   src/ts/impls/explicit/rk/rk.c
-  src/ts/impls/pseudo/posindep.c
+  src/ts/impls/mimex/mimex.c
   src/ts/impls/arkimex/arkimex.c
   src/ts/impls/eimex/eimex.c
   src/ts/impls/rosw/rosw.c
@@ -1687,16 +1712,12 @@ list (APPEND PETSCTS_SRCS
   src/ts/impls/implicit/gl/gl.c
   src/ts/impls/implicit/gl/gladapt.c
   src/ts/impls/implicit/alpha/alpha.c
-  src/ts/adapt/impls/cfl/adaptcfl.c
-  src/ts/adapt/impls/none/adaptnone.c
-  src/ts/adapt/impls/basic/adaptbasic.c
-  src/ts/adapt/interface/tsadapt.c
   )
 if (PETSC_USING_F90)
   list (APPEND PETSCTS_SRCS
     src/ts/f90-mod/petsctsmod.F
     )
-endif ()
+endif()
 
 if (NOT PETSC_USE_SINGLE_LIBRARY)
   if (PETSC_HAVE_CUDA)
@@ -1713,34 +1734,34 @@ endif ()
 if (PETSC_HAVE_FORTRAN)
   list (APPEND PETSCTAO_SRCS
     src/tao/util/ftn-auto/tao_utilf.c
-    src/tao/interface/ftn-auto/taosolver_hjf.c
-    src/tao/interface/ftn-auto/taosolverf.c
-    src/tao/interface/ftn-auto/taosolver_fgf.c
     src/tao/interface/ftn-auto/taosolver_boundsf.c
+    src/tao/interface/ftn-auto/taosolver_hjf.c
+    src/tao/interface/ftn-auto/taosolver_fgf.c
+    src/tao/interface/ftn-auto/taosolverf.c
     src/tao/linesearch/interface/ftn-auto/taolinesearchf.c
     )
 endif ()
 if (NOT PETSC_USE_COMPLEX)
   list (APPEND PETSCTAO_SRCS
+    src/tao/bound/impls/blmvm/blmvm.c
     src/tao/bound/impls/bqpip/bqpip.c
     src/tao/bound/impls/tron/tron.c
     src/tao/bound/impls/gpcg/gpcg.c
-    src/tao/bound/impls/blmvm/blmvm.c
     src/tao/bound/utils/isutil.c
-    src/tao/pde_constrained/impls/lcl/lcl.c
     src/tao/complementarity/impls/ssls/ssls.c
     src/tao/complementarity/impls/ssls/ssils.c
     src/tao/complementarity/impls/ssls/ssfls.c
     src/tao/complementarity/impls/asls/asils.c
     src/tao/complementarity/impls/asls/asfls.c
+    src/tao/pde_constrained/impls/lcl/lcl.c
     src/tao/unconstrained/impls/nls/nls.c
     src/tao/unconstrained/impls/neldermead/neldermead.c
     src/tao/unconstrained/impls/ntr/ntr.c
     src/tao/unconstrained/impls/cg/taocg.c
-    src/tao/unconstrained/impls/owlqn/owlqn.c
+    src/tao/unconstrained/impls/lmvm/lmvm.c
     src/tao/unconstrained/impls/bmrm/bmrm.c
     src/tao/unconstrained/impls/ntl/ntl.c
-    src/tao/unconstrained/impls/lmvm/lmvm.c
+    src/tao/unconstrained/impls/owlqn/owlqn.c
     src/tao/constrained/impls/ipm/ipm.c
     src/tao/linesearch/impls/armijo/armijo.c
     src/tao/linesearch/impls/morethuente/morethuente.c
@@ -1793,14 +1814,11 @@ if (PETSC_USE_SINGLE_LIBRARY)
   else ()
     add_library (petsc ${PETSCSYS_SRCS} ${PETSCVEC_SRCS} ${PETSCMAT_SRCS} ${PETSCDM_SRCS} ${PETSCKSP_SRCS} ${PETSCSNES_SRCS} ${PETSCTS_SRCS} ${PETSCTAO_SRCS})
   endif ()
-  target_link_libraries(petsc ${PETSC_PACKAGE_LIBS})
+  target_link_libraries (petsc ${PETSC_PACKAGE_LIBS})
   if (PETSC_WIN32FE)
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
   endif ()
-  install(TARGETS petsc EXPORT petsc-config
-      DESTINATION lib
-      INCLUDES DESTINATION include/petsc)
 
 endif ()
 
