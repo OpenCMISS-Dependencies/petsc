@@ -51,46 +51,5 @@ function(trycompile VARIABLE INCLUDES CODE EXT)
         else()
             message(FATAL_ERROR "Not implemented: extension '${EXT}'")
         endif()
-#        file(WRITE ${SOURCEFILE} "${STUB}")
-#        configure_file(${SOURCEFILE} ${SOURCEFILE} @ONLY)
-#        try_compile(${VARIABLE} ${BINDIR}
-#                SOURCES ${SOURCEFILE}
-#                CMAKE_FLAGS ${COMPILER}
-#                ${ARGN}
-#                OUTPUT_VARIABLE OUTPUT)
-        #set(${VARIABLE} ${${VARIABLE}} CACHE INTERNAL "Try compile test for ${VARIABLE}")
-#        set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
-#        message(STATUS "Compiling code to check for ${VARIABLE} .. ${${VARIABLE}}")
-#        if (NOT ${VARIABLE})
-#            file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
-#                "Determining if code for variable ${VARIABLE} failed with the following output:\n"
-#                "${OUTPUT}\n\n")
-#        endif()
-        #file(REMOVE ${SOURCEFILE})
     endif()
-endfunction()
-
-
-function(checkexists VARIABLE FUNC)
-    #message(STATUS "Checking if ${FUNC} exists")
-    if (${ARGC} GREATER 0 AND NOT "${ARGN}" STREQUAL "")
-        #message(STATUS "Looking in extra libraries ${ARGN}")
-        SET(CMAKE_REQUIRED_LIBRARIES ${ARGN})
-    endif()
-    #SET(CMAKE_REQUIRED_DEFINITIONS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER})
-    CHECK_FUNCTION_EXISTS(${FUNC} ${VARIABLE})
-    set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
-    #message(STATUS "Checking if ${FUNC} exists .. ${RESULT_VAR}")
-endfunction()
-
-function(checkfexists VARIABLE FUNC)
-    #message(STATUS "Checking if Fortran ${FUNC} exists")
-    if (${ARGC} GREATER 0 AND NOT ${ARGN} STREQUAL "")
-        #message(STATUS "Looking in extra libraries ${ARGN}")
-        SET(CMAKE_REQUIRED_LIBRARIES ${ARGN})
-    endif()
-    SET(CMAKE_REQUIRED_DEFINITIONS -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER})
-    CHECK_FORTRAN_FUNCTION_EXISTS(${FUNC} ${VARIABLE})
-    set(${VARIABLE} ${${VARIABLE}} PARENT_SCOPE)
-    #message(STATUS "Checking if ${FUNC} exists .. ${RESULT_VAR}")
 endfunction()

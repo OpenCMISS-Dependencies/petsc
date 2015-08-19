@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(PETSc VERSION 3.5.2.1 LANGUAGES C Fortran CXX)
+project(PETSc VERSION 3.6.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
 option(PACKAGE_CONFIG_DIR "Directory for package config files (relative to CMAKE_INSTALL_PREFIX)" "lib/cmake")
 option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
+option(WITH_CUDA "${PROJECT_NAME} - Use CUDA" OFF)
 option(USE_THREADS "Use PTHREAD library" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
@@ -12,13 +13,13 @@ include (./FortranStubs.cmake)
 
 # Configure the build-dependent header files
 STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
-configure_file(${PETSc_SOURCE_DIR}/include/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
+configure_file(${PETSc_SOURCE_DIR}/templates/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
 
 STRING(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
-configure_file(${PETSc_SOURCE_DIR}/include/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
+configure_file(${PETSc_SOURCE_DIR}/templates/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
 
-configure_file(${PETSc_SOURCE_DIR}/include/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
-configure_file(${PETSc_SOURCE_DIR}/include/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)
+configure_file(${PETSc_SOURCE_DIR}/templates/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
+configure_file(${PETSc_SOURCE_DIR}/templates/petscmachineinfo.h.in ${PETSc_BINARY_DIR}/include/petscmachineinfo.h)
 
 if (APPLE)
   SET(CMAKE_C_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
@@ -26,11 +27,16 @@ if (APPLE)
   SET(CMAKE_Fortran_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
 endif ()
 
-if (PETSC_HAVE_CUDA)
-  find_package (CUDA REQUIRED)
-  set (CUDA_PROPAGATE_HOST_FLAGS OFF)
-  set (CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --compiler-options ${PETSC_CUDA_HOST_FLAGS})
-endif ()
+if (WITH_CUDA)
+    find_package(CUDA QUIET)
+    if (CUDA_FOUND)
+      set(PETSC_HAVE_CUDA TRUE)
+      set (CUDA_PROPAGATE_HOST_FLAGS OFF)
+      set (CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --compiler-options ${PETSC_CUDA_HOST_FLAGS})
+    else()
+      message(WARNING "Could not locate CUDA libraries. Disabling.")
+    endif ()
+endif()
 
 include_directories("${PETSc_SOURCE_DIR}/include" "${PETSc_BINARY_DIR}/include")
 
