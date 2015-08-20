@@ -8,8 +8,9 @@ option(WITH_CUDA "${PROJECT_NAME} - Use CUDA" OFF)
 option(USE_THREADS "Use PTHREAD library" ON)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
-include (./OpenCMISSPETScConfig.cmake)
-include (./FortranStubs.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(OpenCMISSPETScConfig)
+include(FortranStubs)
 
 # Configure the build-dependent header files
 STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
@@ -1847,8 +1848,7 @@ endif()
 
 # (Some) test routines
 if (BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(src/snes/examples/tests)
+    include(Testing)
 endif()
 
 # Install Fortran modules

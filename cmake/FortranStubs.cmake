@@ -35,7 +35,7 @@ function(FTNGEN_PROCESS DIRNAME SOURCE FEXT)
     SET(OUTFILE ${OUTDIR}/${namewe}f${FEXT})
     add_custom_command(OUTPUT ${OUTFILE}
         COMMAND bfort -dir ${OUTDIR} ${bfort_opts} ${SOURCE}
-        COMMAND ${CMAKE_COMMAND} -DFILE=${OUTFILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/FortranStubsHelper.cmake
+        COMMAND ${CMAKE_COMMAND} -DFILE=${OUTFILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FortranStubsHelper.cmake
     )
 endfunction()
 
