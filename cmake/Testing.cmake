@@ -1,7 +1,7 @@
 enable_testing()
 set(GENERATED_TESTS_INCFILE ${CMAKE_CURRENT_BINARY_DIR}/IncludeTestFolders.cmake)
 
-if (NOT EXISTS "${GENERATED_TESTS_INCFILE}")
+if (NOT EXISTS "${GENERATED_TESTS_INCFILE}" OR TRUE)
     find_package(PythonInterp QUIET)
     if (PYTHONINTERP_FOUND)
         message(STATUS "Running python test case generator...")
@@ -34,6 +34,8 @@ if (EXISTS "${GENERATED_TESTS_INCFILE}")
         -DWD=${CMAKE_CURRENT_BINARY_DIR}
         -P ${TESTRUNNER}
         )
+        # Set to 10s timeout
+        set_tests_properties(${NAME} PROPERTIES TIMEOUT 10)
     endmacro()
     
     include("${GENERATED_TESTS_INCFILE}")

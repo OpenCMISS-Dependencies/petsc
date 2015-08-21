@@ -157,4 +157,5 @@ src/tao/leastsquares/examples/tutorials/chwirut2
 src/tao/leastsquares/examples/tutorials/chwirut1f
 src/tao/leastsquares/examples/tutorials/chwirut2f
 
-src/**/examples/tests/CMakeLists\.txt
+src/**/examples/**/CMakeLists.txt
+cmake/IncludeTestFolders.cmake
