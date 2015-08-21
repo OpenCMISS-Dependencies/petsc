@@ -617,7 +617,7 @@ runex10_10:
 	   else printf "${PWD}\nPossible problem with ex10_10, diffs above\n=========================================\n"; fi; \
 	   ${RM} -f ex10_10.tmp
 runex10_11:
-	-@${MPIEXEC} -n 2 ./ex10 -f0 http://ftp.mcs.anl.gov/pub/petsc/matrices/testmatrix.gz > ex10_11.tmp 2>&1;\
+	-@${MPIEXEC} -n 2 ./ex10 -f0 ${DATAFILESPATH}/matrices/testmatrix > ex10_11.tmp 2>&1;\
 	   if (${DIFF} output/ex10_11.out ex10_11.tmp) then true; \
 	   else printf "${PWD}\nPossible problem with ex10_11, diffs above\n=========================================\n"; fi; \
 	   ${RM} -f ex10_11.tmp
