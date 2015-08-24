@@ -1,0 +1,6 @@
+add_executable(run_dm_dt_tests_1 ex1.c)
+target_link_libraries(run_dm_dt_tests_1 petsc)
+ADDTEST(dm_dt_tests_1_np1_1 1 run_dm_dt_tests_1 output/ex1_1.out "-degrees 1,2,3,4,5 -points 0,.2.-.5,.8,.9,1 -interval -.5,1 ")
+add_executable(run_dm_dt_tests_2 ex2.c)
+target_link_libraries(run_dm_dt_tests_2 petsc)
+ADDTEST(dm_dt_tests_2_np1_1 1 run_dm_dt_tests_2 output/ex2_1.out "-degrees 1,2,3 -target_points -0.3,0,.2 -src_points -1,-.3,0,.2,1 ")
