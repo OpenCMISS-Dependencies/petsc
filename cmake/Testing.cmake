@@ -1,12 +1,12 @@
 enable_testing()
-set(GENERATED_TESTS_INCFILE ${CMAKE_CURRENT_BINARY_DIR}/IncludeTestFolders.cmake)
+set(GENERATED_TESTS_INCFILE ${CMAKE_CURRENT_LIST_DIR}/IncludeTestFolders.cmake)
 
-if (NOT EXISTS "${GENERATED_TESTS_INCFILE}" OR TRUE)
+if (NOT EXISTS "${GENERATED_TESTS_INCFILE}")
     find_package(PythonInterp QUIET)
     if (PYTHONINTERP_FOUND)
         message(STATUS "Running python test case generator...")
         execute_process(COMMAND ${PYTHON_EXECUTABLE} 
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/convert_tests.py ${CMAKE_CURRENT_BINARY_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/convert_tests.py ${CMAKE_CURRENT_LIST_DIR}
             RESULT_VARIABLE RES
             ERROR_FILE ${CMAKE_CURRENT_BINARY_DIR}/conversion.error
             OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/conversion.out
@@ -21,7 +21,7 @@ endif()
             
 if (EXISTS "${GENERATED_TESTS_INCFILE}")
     set(TESTRUNNER ${CMAKE_CURRENT_SOURCE_DIR}/cmake/TestRunner.cmake)
-    macro(ADDTEST NAME NPROC TARGET ARGS)
+    macro(ADDTEST NAME NPROC TARGET COMPFILE ARGS)
         add_test(NAME ${NAME}
          COMMAND ${CMAKE_COMMAND} 
         -DMPIEXEC=${MPIEXEC}
@@ -31,6 +31,7 @@ if (EXISTS "${GENERATED_TESTS_INCFILE}")
         -DEXEC=$<TARGET_FILE:${TARGET}>
         -DARGS:STRING=${ARGS}
         -DOUT=${NAME}.tmp
+        -DCOMPFILE=${CMAKE_CURRENT_SOURCE_DIR}/${COMPFILE}
         -DWD=${CMAKE_CURRENT_BINARY_DIR}
         -P ${TESTRUNNER}
         )

@@ -6,7 +6,7 @@ import re
 import sys
 from collections import OrderedDict
  
-global rootDir, numtotaltests, log, debug, binaries, current_folder, missing_sources, missing_execs, alltests
+global rootDir, numtotaltests, log, debug, binaries, current_folder, missing_sources, missing_execs, alltests, mfcont
 
 # Set the directory you want to start from
 rootDir = os.getcwd()
@@ -18,7 +18,7 @@ re_findtest = re.compile(r"^(runex[^:]*):\s*\n((?:(?:.|\n)(?!^runex|TESTEXAMPLES
 # Finds the test case names in the TESTEXAMPLES_XX lists
 re_testcases = re.compile(r"(runex(?:[^ ]*))", re.MULTILINE)
 # Finds each actual test call
-re_tests = re.compile(r"(?:-@)?\$\{MPIEXEC\} -n (\d+) ./ex(?P<nr>\d+f?) ([^>]*)>>? ex(?P=nr)_?((?:\w+)?)\.tmp 2>&1", re.MULTILINE)
+re_tests = re.compile(r"(?:-@)?\$\{MPIEXEC\} -n (\d+) ./ex(?P<nr>\d+f?) ([^>]*)>>? ex(?P=nr)_?((?:\w+)?)\.tmp 2>&1(?:(?:[^o]*)output/([^.]*)\.out)?", re.MULTILINE)
 
 re_binaries = re.compile(r"ex(?P<nr>\d+f?):\s+ex(?P=nr).o\s*chkopts", re.MULTILINE)
 
@@ -68,24 +68,34 @@ def processArgs(args, loopvars):
     return args
 
 def writeExecutableCMake(name, exname):
-    ext = 'F' if name.endswith('f') else 'c'
-    src = "ex{}.{}".format(name, ext)
-    fullsrc = os.path.join(current_folder, src)
-    if os.path.isfile(fullsrc):
-        cml.write("add_executable({} {})\n".format(exname, src))
+    # Find executable instruction in makefile
+    m = re.search("^ex"+name+": *(.+)chkopts", mfcont, re.MULTILINE)
+    # Find all sources (most are one, but some are two or more source files!)
+    m = re.findall(" *([^.]*).o",m.group(1))
+    sources = []
+    for name in m:
+        ext = 'F' if name.endswith('f') else 'c'
+        src = "{}.{}".format(name,ext)
+        fullsrc = os.path.join(current_folder, src)
+        if os.path.isfile(fullsrc):
+            sources.append(src)
+        else:
+            missing_sources.append(fullsrc)
+    if len(sources) > 0:
+        cml.write("add_executable({} {})\n".format(exname, " ".join(sources)))
         cml.write("target_link_libraries({} petsc)\n".format(exname))
         binaries.append(exname)
         return 1
     else:
-        log.write("Skipping binary {}, source {} not found.\n".format(exname, src))
-        missing_sources.append(fullsrc)
+        log.write("Skipping binary {}, some source files were not found.\n".format(exname, src))
         return 0
 
-def parseTests(base,teststr,vars,forvars):
+def parseTests(base,teststr,vars,forvars,curdir):
     # Write test list
     #print teststr
     tests = re_tests.findall(teststr)
     for match in tests:
+        #print match
         localcount = 1
         
         nproc = match[0]
@@ -96,12 +106,17 @@ def parseTests(base,teststr,vars,forvars):
                 missing_execs += 1
                 continue
         
-        testname = getTestName(base, match[1], nproc, match[3])
-        while testname in alltests:
-            testname = (getTestName(base, match[1], nproc, match[3]) + "_v{}").format(localcount)
+        fulltestname = getTestName(base, match[1], nproc, match[3])
+        while fulltestname in alltests:
+            fulltestname = (getTestName(base, match[1], nproc, match[3]) + "_v{}").format(localcount)
             localcount += 1
         
         args = processArgs(match[2], forvars);
+        
+        # Check if there's an output file to compare to
+        outfile = os.path.join('output',"{}.out".format(match[4]))
+        if not os.path.isfile(os.path.join(rootDir,curdir,outfile)):
+            outfile = "FALSE"
         
         # Check if we have a loop for variables!
         close = 0
@@ -116,11 +131,11 @@ def parseTests(base,teststr,vars,forvars):
                 close += 1
                 testnameloopextra += "_" + forvar + "-${" + forvar + "}"
         
-        cml.write("ADDTEST({}{} {} {} \"{}\")\n".format(testname, testnameloopextra, nproc, exname, args))
-        alltests.append(testname)
+        cml.write("ADDTEST({}{} {} {} {} \"{}\")\n".format(fulltestname, testnameloopextra, nproc, exname, outfile, args))
+        alltests.append(fulltestname)
         if not debug:
             log.write("Added test {}. nProcs={}, args={}\n"
-                      .format(testname, nproc, args))
+                      .format(fulltestname, nproc, args))
         
         # Close loops if any!    
         for num in range(close):
@@ -134,9 +149,8 @@ folders_with_tests = []
 donefolders = []
 binaries = []
 alltests = []
-
+skipped_tests = []
 missing_execs = 0
-notmarked = 0
 missing_sources = []
 if debug:
     log = sys.stdout
@@ -153,7 +167,7 @@ for dirName, subdirList, fileList in os.walk(rootDir):
         # Get relative current_folder to working directory
         current_folder = m.group(0).replace(m.group(1), "")
         
-        if debug and m.group(0) != "/home/dwirtz/software/opencmiss/src/dependencies/petsc/src/ksp/ksp/examples/tutorials":
+        if debug and m.group(0) != "/home/dwirtz/software/opencmiss/src/dependencies/petsc/src/vec/vec/examples/tutorials":
             continue
         
         if current_folder not in donefolders:
@@ -217,9 +231,10 @@ for dirName, subdirList, fileList in os.walk(rootDir):
                 for test_raw in tests_raw:
                     if test_raw.group(1) in selected_tests:
                         log.write("Parsing test {}\n".format(test_raw.group(1)))
-                        parseTests(base,test_raw.group(2),vars,forvars)
+                        parseTests(base,test_raw.group(2),vars,forvars,current_folder)
                     else:
                         log.write("Skipping test {}\n".format(test_raw.group(1)))
+                        skipped_tests.append("{} -> {}".format(current_folder,test_raw.group(1)))
             if not debug:
                 cml.close()
         donefolders.append(current_folder)
@@ -241,9 +256,9 @@ summary = """
 Conversion done.
 Created {} executables and {} tests.
 Missing: {} executables for detected tests, {} source files
-Skipped compilation of {} executables not listed in {}
+Skipped: {} tests not listed in {}
 """.format(len(binaries), len(alltests), missing_execs,
-            len(missing_sources), notmarked, ",".join(find_examples_types))
+            len(missing_sources), len(skipped_tests), ",".join(find_examples_types))
 log.writelines(summary)        
 log.close()
 if not debug:
