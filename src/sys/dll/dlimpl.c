@@ -285,9 +285,9 @@ PetscErrorCode  PetscDLSym(PetscDLHandle handle,const char symbol[],void **value
 #endif
 #endif
     }
-#endif
 #endif /* PETSC_HAVE_DLOPEN && PETSC_HAVE_DYNAMIC_LIBRARIES */
   }
+#endif /* PETSC_HAVE_DLSYM */
 #if defined(PETSC_HAVE_DLERROR)
   dlerror(); /* clear any previous error */
 #endif
