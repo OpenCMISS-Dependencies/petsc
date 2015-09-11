@@ -4,17 +4,17 @@ include (${CMAKE_CURRENT_LIST_DIR}/PETScConfig.cmake)
 option(PETSC_USE_DEBUG "${PROJECT_NAME} - Build with DEBUG information" NO)
 
 # Fixed settings
-SET(PETSC_HAVE_CXX YES)
-SET(PETSC_HAVE_FORTRAN YES)
+set(PETSC_HAVE_CXX YES)
+set(PETSC_HAVE_FORTRAN YES)
 if (NOT DEFINED FORTRAN_MANGLING)
     set(FORTRAN_MANGLING Add_ CACHE STRING "${PROJECT_NAME} - Fortran mangling scheme")
 endif()
-SET(PETSC_USE_SINGLE_LIBRARY 1)
+set(PETSC_USE_SINGLE_LIBRARY 1)
 
 # Headers/functions lookup lists
 include(Functions)
-SET(SEARCHHEADERS )
-SET(SEARCHFUNCTIONS )
+set(SEARCHHEADERS )
+set(SEARCHFUNCTIONS )
 
 # MPI
 find_package(MPI REQUIRED)
@@ -22,38 +22,38 @@ set(PETSC_HAVE_MPI YES)
 if (MPI_C_COMPILER)
     set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 else()
-    LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH})
+    list(APPEND PETSC_PACKAGE_LIBS ${MPI_C_LIBRARIES})
+    list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_C_INCLUDE_PATH})
 endif()
 if (MPI_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 else()
-    LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_CXX_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_CXX_INCLUDE_PATH})
+    list(APPEND PETSC_PACKAGE_LIBS ${MPI_CXX_LIBRARIES})
+    list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_CXX_INCLUDE_PATH})
 endif()
 if (MPI_Fortran_COMPILER)
     set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
 else()
-    LIST(APPEND PETSC_PACKAGE_LIBS ${MPI_Fortran_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH})    
+    list(APPEND PETSC_PACKAGE_LIBS ${MPI_Fortran_LIBRARIES})
+    list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH})    
 endif()
 # Extra MPI-related functions
-LIST(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
+list(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
       MPI_Iallreduce MPI_Ibarrier MPI_Finalized MPI_Exscan MPIX_Iallreduce MPI_Win_create MPI_Alltoallw MPI_Type_create_indexed_block)
 
 # LA packages
 find_package(BLAS ${BLAS_VERSION} REQUIRED)
 find_package(LAPACK ${LAPACK_VERSION} REQUIRED)
-SET(PETSC_HAVE_BLASLAPACK YES)
+set(PETSC_HAVE_BLASLAPACK YES)
 
 # Valgrind - UNIX only
-SET(PETSC_HAVE_VALGRIND NO)
+set(PETSC_HAVE_VALGRIND NO)
 if (UNIX)
     find_package(VALGRIND QUIET)
     if (VALGRIND_FOUND)
         message(STATUS "Found Valgrind: ${VALGRIND_INCLUDE_DIR}")
-        SET(PETSC_HAVE_VALGRIND 1)
-        LIST(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
+        set(PETSC_HAVE_VALGRIND 1)
+        list(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
     endif()
 endif()
 # Sowing: Only for ftn-auto generation through bfort. Not needed with dependencies
@@ -84,37 +84,41 @@ endif()
 if (USE_THREADS)
     find_package(Threads QUIET)
     if (Threads_FOUND)
-        SET(PETSC_HAVE_PTHREAD YES)
-        LIST(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
+        set(PETSC_HAVE_PTHREAD YES)
+        list(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
         CHECK_SYMBOL_EXISTS(pthread_barrier_t pthread.h PETSC_HAVE_PTHREAD_BARRIER_T)
         CHECK_SYMBOL_EXISTS(cpu_set_t sched.h PETSC_HAVE_SCHED_CPU_SET_T)
-        LIST(APPEND SEARCHHEADERS sys/sysctl) 
+        list(APPEND SEARCHHEADERS sys/sysctl) 
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
-        SET(PETSC_HAVE_PTHREAD NO)
+        set(PETSC_HAVE_PTHREAD NO)
     endif()
 endif()
 
 ########################################################
 # Header availabilities
 # This list is from config/PETSc/Configure.py
-LIST(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
+list(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
     netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf
     signal dlfcn linux_header math sys/time fenv Winsock2)
-SET(PETSCCONF_HAVE_HEADERS )
+set(PETSCCONF_HAVE_HEADERS )
 foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
     STRING(REPLACE "/" "_" HDR ${HDR})
-    SET(VARNAME "PETSC_HAVE_${HDR}_H")
+    set(VARNAME "PETSC_HAVE_${HDR}_H")
     CHECK_INCLUDE_FILES("${hdr}.h" ${VARNAME})
     if (${${VARNAME}})
-        LIST(APPEND PETSCCONF_HAVE_HEADERS "#define ${VARNAME} 1")
+        list(APPEND PETSCCONF_HAVE_HEADERS "#define ${VARNAME} 1")
     endif()
 endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_HEADERS "${PETSCCONF_HAVE_HEADERS}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_HEADERS}")
+
+# Without sys/socket.h no socket viewer
+# Maybe there's a more advanced logic behind that, but this is troublesome on windows only (until now)
+set(PETSC_USE_SOCKET_VIEWER ${PETSC_HAVE_SYS_SOCKET_H})
 
 # __SSE__
 CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
@@ -139,13 +143,13 @@ endif()
 # Signal availabilities
 set(SEARCHSIGNALS ABRT ALRM BUS CHLD CONT FPE HUP ILL INT KILL PIPE QUIT SEGV
     STOP SYS TERM TRAP TSTP URG USR1 USR2)
-SET(PETSCCONF_HAVE_SIGNAL )
+set(PETSCCONF_HAVE_SIGNAL )
 foreach(sig ${SEARCHSIGNALS})
     if (PETSC_HAVE_SIGNAL_H)
         CHECK_SYMBOL_EXISTS("SIG${sig}" "signal.h" PETSC_HAVE_SIG${sig})
     endif()
     if (NOT PETSC_HAVE_SIG${sig})
-        LIST(APPEND PETSCCONF_HAVE_SIGNAL "#define PETSC_MISSING_SIG${sig} 1")
+        list(APPEND PETSCCONF_HAVE_SIGNAL "#define PETSC_MISSING_SIG${sig} 1")
     endif()
 endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_SIGNAL "${PETSCCONF_HAVE_SIGNAL}")
@@ -163,7 +167,7 @@ endif()
 
 ########################################################
 # Function availabilities
-LIST(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
+list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
     gettimeofday getwd memalign memmove mkstemp popen PXFGETARG rand getpagesize
     readlink realpath sigaction signal sigset usleep sleep _sleep socket times
     gethostbyname uname snprintf _snprintf lseek _lseek time fork stricmp 
@@ -172,22 +176,22 @@ LIST(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     # Added in Petsc 3.6.1 (at least here)
     vsnprintf va_copy getrusage vfprintf nanosleep sysinfo vprintf
 )
-SET(PETSCCONF_HAVE_FUNCS )
+set(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
     STRING(TOUPPER ${func} FUNC)
-    SET(VARNAME "PETSC_HAVE_${FUNC}")
+    set(VARNAME "PETSC_HAVE_${FUNC}")
     CHECK_FUNCTION_EXISTS(${func} ${VARNAME})
     if (${${VARNAME}})
-        LIST(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
+        list(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
     endif()
 endforeach()
 # MPI extras - see Buildsystem/config/packages/MPI.py lines 781 ff
 if (PETSC_HAVE_MPI)
     if (PETSC_HAVE_MPI_WIN_CREATE)
-        SET(PETSC_HAVE_MPI_REPLACE 1)
+        set(PETSC_HAVE_MPI_REPLACE 1)
     endif()
     if (NOT PETSC_HAVE_MPI_TYPE_CREATE_INDEXED_BLOCK)
-        SET(PETSC_HAVE_MPI_ALLTOALLW NO)
+        set(PETSC_HAVE_MPI_ALLTOALLW NO)
     endif()
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_set PETSC_HAVE_MPICH_CH3_SOCK)
     CHECK_FUNCTION_EXISTS(MPIDI_CH3I_sock_fixed_nbc_progress PETSC_HAVE_MPICH_CH3_SOCK_FIXED_NBC_PROGRESS)
@@ -208,7 +212,7 @@ if (PETSC_HAVE_MPI)
     foreach(MPI_DATATYPE MPI_LONG_DOUBLE MPI_INT64_T MPI_C_DOUBLE_COMPLEX)
         CHECK_SYMBOL_EXISTS(${MPI_DATATYPE} mpi.h PETSC_HAVE_${MPI_DATATYPE})
         if (PETSC_HAVE_${MPI_DATATYPE})
-            LIST(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
+            list(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
         endif()
     endforeach()
 endif()
@@ -216,27 +220,27 @@ STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_FUNCS "${PETSCCONF_HAVE_FUNCS}")
 #message(STATUS "Detected available functions: ${PETSCCONF_HAVE_FUNCS}")
 
 # MPI-IO      
-SET(_MPIIO_CODELIST "MPI_Aint lb, extent\;\nif (MPI_Type_get_extent(MPI_INT, &lb, &extent))\;\n"
+set(_MPIIO_CODELIST "MPI_Aint lb, extent\;\nif (MPI_Type_get_extent(MPI_INT, &lb, &extent))\;\n"
     "MPI_File fh\;\nvoid *buf\;\nMPI_Status status\;\nif (MPI_File_write_all(fh, buf, 1, MPI_INT, &status))\;\n"
     "MPI_File fh\;\nvoid *buf\;\nMPI_Status status\;\nif (MPI_File_read_all(fh, buf, 1, MPI_INT, &status))\;\n"
     "MPI_File fh\;\nMPI_Offset disp\;\nMPI_Info info\;\nif (MPI_File_set_view(fh, disp, MPI_INT, MPI_INT, \"\", info))\;\n"
     "MPI_File fh\;\nMPI_Info info\;\nif (MPI_File_open(MPI_COMM_SELF, \"\", 0, info, &fh))\;\n"
     "MPI_File fh\;\nMPI_Info info\;\nif (MPI_File_close(&fh))\;\n")
-SET(PETSC_HAVE_MPIIO YES)
+set(PETSC_HAVE_MPIIO YES)
 foreach(_IDX RANGE 0 5)
-    LIST(GET _MPIIO_CODELIST ${_IDX} _MPIIOCODE)
+    list(GET _MPIIO_CODELIST ${_IDX} _MPIIOCODE)
     trycompile(MPIIOCHECK${_IDX} "#include <mpi.h>" "${_MPIIOCODE}" c)
     if (NOT MPIIOCHECK${_IDX})
-        SET(PETSC_HAVE_MPIIO NO)
+        set(PETSC_HAVE_MPIIO NO)
     endif()
 endforeach()
 
 ########################################################
 # Fortran interfacing - option above [and passed in as def by opencmiss]
 if (FORTRAN_MANGLING STREQUAL Add_)
-    SET(PETSC_HAVE_FORTRAN_UNDERSCORE YES)
+    set(PETSC_HAVE_FORTRAN_UNDERSCORE YES)
 elseif(FORTRAN_MANGLING STREQUAL UpCase)
-    SET(PETSC_HAVE_FORTRAN_CAPS YES)
+    set(PETSC_HAVE_FORTRAN_CAPS YES)
 endif()
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
 CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
@@ -288,10 +292,10 @@ endif()
 # This should ideally be contained somehow in the exported config files, but as it isnt we need
 # to manually say which targets are defined in which package (which is knowledge that should be available
 # also in this local context as we're consuming all of those packages here)
-SET(PETSC_DEPENDENCIES PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
+set(PETSC_DEPENDENCIES PASTIX MUMPS SUITESPARSE SCALAPACK PTSCOTCH
     SUPERLU SUNDIALS HYPRE SUPERLU_DIST PARMETIS)
-SET(PETSCCONF_HAVE_FLAGS )
-SET(PETSC_CONFIGINFO_STRING )
+set(PETSCCONF_HAVE_FLAGS )
+set(PETSC_CONFIGINFO_STRING )
 foreach(PACKAGE ${PETSC_DEPENDENCIES})
     # Define the option
     option(USE_${PACKAGE} "Build PETSc with ${PACKAGE}" ON)
@@ -303,24 +307,24 @@ foreach(PACKAGE ${PETSC_DEPENDENCIES})
         STRING(TOLOWER ${PACKAGE} pkgname)
         
         # Set the petsc-have flag
-        SET(PETSC_HAVE_${PACKAGE} YES)
+        set(PETSC_HAVE_${PACKAGE} YES)
         
         # Add targets to link targets list
-        LIST(APPEND PETSC_PACKAGE_LIBS ${pkgname})
+        list(APPEND PETSC_PACKAGE_LIBS ${pkgname})
         
         # petscconfig.h
-        LIST(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
+        list(APPEND PETSCCONF_HAVE_FLAGS "#ifndef PETSC_HAVE_${PACKAGE}\n#define PETSC_HAVE_${PACKAGE} 1\n#endif\n\n")
         
         # petscconfiginfo.h
-        SET(INCLUDES )
-        SET(LIBRARIES )
+        set(INCLUDES )
+        set(LIBRARIES )
         get_target_property(INCDIR ${pkgname} INTERFACE_INCLUDE_DIRECTORIES)
-        LIST(APPEND INCLUDES ${INCDIR})
+        list(APPEND INCLUDES ${INCDIR})
         get_target_property(LINK_LIBS ${pkgname} INTERFACE_LINK_LIBRARIES)
-        LIST(APPEND LIBRARIES ${LINK_LIBS})
+        list(APPEND LIBRARIES ${LINK_LIBS})
         STRING(REPLACE ";" "," LIBRARIES "${LIBRARIES}")
         STRING(REPLACE ";" "," INCLUDES "${INCLUDES}")
-        LIST(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
+        list(APPEND PETSC_CONFIGINFO_STRING "--with-${pkgname}=1 --with-${pkgname}-lib=[${LIBRARIES}] --with-${pkgname}-include=[${INCLUDES}]")
     endif()
 endforeach()
 
@@ -328,18 +332,18 @@ endforeach()
 # X11
 find_package(X11 QUIET)
 if (X11_FOUND)
-    SET(PETSC_HAVE_X TRUE)
-    LIST(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
-    LIST(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
+    set(PETSC_HAVE_X TRUE)
+    list(APPEND PETSC_PACKAGE_LIBS ${X11_LIBRARIES})
+    list(APPEND PETSC_PACKAGE_INCLUDES ${X11_INCLUDE_DIR})
 endif()
 
 ########################################################
 # SSL support
 find_package(OpenSSL QUIET)
-if (OPENSSL_FOUND)
+if (OPENSSL_FOUND AND NOT MINGW)
     message(STATUS "Building PETSc with OpenSSL ${OPENSSL_VERSION}")
-    LIST(APPEND PETSC_PACKAGE_LIBS ${OPENSSL_LIBRARIES})
-    SET(PETSC_HAVE_SSL 1)
+    list(APPEND PETSC_PACKAGE_LIBS ${OPENSSL_LIBRARIES})
+    set(PETSC_HAVE_SSL 1)
 endif()
 
 ########################################################
@@ -350,10 +354,10 @@ if (WITH_OPENMP)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
-    SET(PETSC_HAVE_OPENMP 1)
+    set(PETSC_HAVE_OPENMP 1)
   else()
     set(WITH_OPENMP FALSE)
-    SET(PETSC_HAVE_OPENMP FALSE)
+    set(PETSC_HAVE_OPENMP FALSE)
   endif()
 endif()
 

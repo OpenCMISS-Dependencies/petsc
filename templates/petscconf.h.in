@@ -89,6 +89,7 @@
 /* Socket stuff */
 #cmakedefine PETSC_HAVE_CLOSESOCKET 1
 #cmakedefine PETSC_HAVE_WSAGETLASTERROR 1
+#cmakedefine PETSC_USE_SOCKET_VIEWER 1
 
 /* Values taken from http://sourceforge.net/p/mingw-w64/bugs/242/ */
 #ifdef __MINGW32__
@@ -136,10 +137,6 @@
 
 #ifndef PETSC_HAVE_SO_REUSEADDR
 #define PETSC_HAVE_SO_REUSEADDR 1
-#endif
-
-#ifndef PETSC_USE_SOCKET_VIEWER
-#define PETSC_USE_SOCKET_VIEWER 1
 #endif
 
 #ifndef PETSC_DIR
