@@ -167,6 +167,8 @@ list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     closesocket WSAGetLastError # from missing.py:65 / socket stuff
     # Added in Petsc 3.6.1 (at least here)
     vsnprintf va_copy getrusage vfprintf nanosleep sysinfo vprintf
+    # Added in the verge of fixing up for VS2013
+    get_command_argument getarg PXFGETARG
 )
 if (WIN32)
     list(APPEND SEARCHFUNCTIONS GetComputerName)
@@ -210,6 +212,12 @@ if (PETSC_HAVE_MPI)
             list(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
         endif()
     endforeach()
+    
+    # This was originally "MINGW OR WIN32" - The FindMPI wrapper from OpenCMISS manage however
+    # now defines MPI_Fortran_MODULE_COMPATIBLE if the "USE MPI" directive works.
+    if (MPI_Fortran_MODULE_COMPATIBLE)
+        set(PETSC_HAVE_MPI_F90MODULE YES)
+    endif()
 endif()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_FUNCS "${PETSCCONF_HAVE_FUNCS}")
 #message(STATUS "Detected available functions: ${PETSCCONF_HAVE_FUNCS}")
@@ -243,6 +251,13 @@ endif()
 CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
 CHECK_FORTRAN_FUNCTION_EXISTS(get_command_argument PETSC_HAVE_FORTRAN_GET_COMMAND_ARGUMENT)
 CHECK_FORTRAN_FUNCTION_EXISTS(getarg PETSC_HAVE_FORTRAN_GETARG)
+CHECK_FUNCTION_EXISTS(ipxfargc_ PETSC_HAVE_PXFGETARG_NEW)
+CHECK_FUNCTION_EXISTS(f90_unix_MP_iargc PETSC_HAVE_NAGF90)
+CHECK_FUNCTION_EXISTS(iargc_ PETSC_HAVE_BGL_IARGC)
+CHECK_FUNCTION_EXISTS("GETARG@16" PETSC_IARG_COUNT_PROGNAME)
+if (PETSC_IARG_COUNT_PROGNAME)
+    set(PETSC_USE_NARGS TRUE)
+endif()
 
 ########################################################
 # Prefetch config
@@ -462,30 +477,15 @@ int main(void) {
 #      self.addDefine('HAVE_GET_USER_NAME',1)
 #    elif self.libraries.add('advapi32','GetUserName',prototype='#include <Windows.h>', call='GetUserName(NULL,NULL);'):
 #      self.addDefine('HAVE_GET_USER_NAME',1)
-#
 #    if not self.libraries.add('User32.lib','GetDC',prototype='#include <Windows.h>',call='GetDC(0);'):
 #      self.libraries.add('user32','GetDC',prototype='#include <Windows.h>',call='GetDC(0);')
 #    if not self.libraries.add('Gdi32.lib','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);'):
 #      self.libraries.add('gdi32','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);')
-#
-#    self.types.check('int32_t', 'int')
-#    if not self.checkCompile('#include <sys/types.h>\n','uid_t u;\n'):
-#      self.addTypedef('int', 'uid_t')
-#      self.addTypedef('int', 'gid_t')
-#    if not self.checkLink('#if defined(PETSC_HAVE_UNISTD_H)\n#include <unistd.h>\n#endif\n','int a=R_OK;\n'):
-#      self.framework.addDefine('R_OK', '04')
-#      self.framework.addDefine('W_OK', '02')
-#      self.framework.addDefine('X_OK', '01')
-#    if not self.checkLink('#include <sys/stat.h>\n','int a=0;\nif (S_ISDIR(a)){}\n'):
-#      self.framework.addDefine('S_ISREG(a)', '(((a)&_S_IFMT) == _S_IFREG)')
-#      self.framework.addDefine('S_ISDIR(a)', '(((a)&_S_IFMT) == _S_IFDIR)')
 #    if self.checkCompile('#include <Windows.h>\n','LARGE_INTEGER a;\nDWORD b=a.u.HighPart;\n'):
 #      self.addDefine('HAVE_LARGE_INTEGER_U',1)
-#
     # Windows requires a Binary file creation flag when creating/opening binary files.  Is a better test in order?
 #    if self.checkCompile('#include <Windows.h>\n#include <fcntl.h>\n', 'int flags = O_BINARY;'):
 #      self.addDefine('HAVE_O_BINARY',1)
-#
 #    if self.compilers.CC.find('win32fe') >= 0:
 #      self.addDefine('PATH_SEPARATOR','\';\'')
 #      self.addDefine('DIR_SEPARATOR','\'\\\\\'')
