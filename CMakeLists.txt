@@ -14,10 +14,10 @@ include(OpenCMISSPETScConfig)
 include(FortranStubs)
 
 # Configure the build-dependent header files
-STRING(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
+string(REPLACE ";" "" PETSCCONF_HAVE_FLAGS "${PETSCCONF_HAVE_FLAGS}")
 configure_file(${PETSc_SOURCE_DIR}/templates/petscconf.h.in ${PETSc_BINARY_DIR}/include/petscconf.h)
 
-STRING(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
+string(REPLACE ";" " " PETSC_CONFIGINFO_STRING "${PETSC_CONFIGINFO_STRING}")
 configure_file(${PETSc_SOURCE_DIR}/templates/petscconfiginfo.h.in ${PETSc_BINARY_DIR}/include/petscconfiginfo.h)
 
 configure_file(${PETSc_SOURCE_DIR}/templates/petscfix.h.in ${PETSc_BINARY_DIR}/include/petscfix.h COPYONLY)
@@ -1823,6 +1823,9 @@ if (PETSC_USE_SINGLE_LIBRARY)
     add_library (petsc ${PETSCSYS_SRCS} ${PETSCVEC_SRCS} ${PETSCMAT_SRCS} ${PETSCDM_SRCS} ${PETSCKSP_SRCS} ${PETSCSNES_SRCS} ${PETSCTS_SRCS} ${PETSCTAO_SRCS})
   endif ()
   target_link_libraries(petsc PUBLIC ${PETSC_PACKAGE_LIBS})
+  if (MSVC)
+      target_compile_definitions(petsc PRIVATE _CRT_SECURE_NO_WARNINGS)
+  endif()
   if (PETSC_WIN32FE)
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (petsc PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")

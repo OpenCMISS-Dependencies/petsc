@@ -1,4 +1,9 @@
-find_package(SOWING ${SOWING_VERSION} CONFIG REQUIRED)
+if (MSVC)
+    set(BFORT_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/bin/bfort.exe)
+else()
+    find_package(SOWING ${SOWING_VERSION} CONFIG REQUIRED)
+    set(BFORT_EXECUTABLE bfort)
+endif()
 SET(bfort_opts -mnative -ansi -nomsgs -noprofile -anyname -mapptr -mpi -mpi2 -ferr
     -ptrprefix Petsc -ptr64 PETSC_USE_POINTER_CONVERSION -fcaps PETSC_HAVE_FORTRAN_CAPS 
     -fuscore PETSC_HAVE_FORTRAN_UNDERSCORE -f90mod_skip_header -f90modfile f90module.f90)
@@ -34,7 +39,7 @@ function(FTNGEN_PROCESS DIRNAME SOURCE FEXT)
     get_filename_component(namewe ${filename} NAME_WE)
     SET(OUTFILE ${OUTDIR}/${namewe}f${FEXT})
     add_custom_command(OUTPUT ${OUTFILE}
-        COMMAND bfort -dir ${OUTDIR} ${bfort_opts} ${SOURCE}
+        COMMAND ${BFORT_EXECUTABLE} -dir ${OUTDIR} ${bfort_opts} ${SOURCE}
         COMMAND ${CMAKE_COMMAND} -DFILE=${OUTFILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FortranStubsHelper.cmake
     )
 endfunction()

@@ -31,6 +31,7 @@ list(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_ex
 find_package(BLAS ${BLAS_VERSION} REQUIRED)
 find_package(LAPACK ${LAPACK_VERSION} REQUIRED)
 set(PETSC_HAVE_BLASLAPACK YES)
+list(APPEND PETSC_PACKAGE_LIBS blas lapack)
 
 # Valgrind - UNIX only
 set(PETSC_HAVE_VALGRIND NO)
@@ -42,7 +43,7 @@ if (UNIX)
         list(APPEND PETSC_PACKAGE_INCLUDES ${VALGRIND_INCLUDE_DIR})
     endif()
 endif()
-# Sowing: Only for ftn-auto generation through bfort. Not needed with dependencies
+# Dont need anything else but fortran stubs generation from bfort inside sowing.
 set(PETSC_HAVE_SOWING NO)
 
 # Socket stuff (missing.py:65)
@@ -55,7 +56,7 @@ endif()
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES} ${CMAKE_Fortran_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES})
 foreach(_ll ${CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES})
-    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L${_ll}")
+    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -L\"${_ll}\"")
 endforeach()
 if (WIN32)
     list(APPEND CMAKE_REQUIRED_LIBRARIES ${PETSC_PACKAGE_LIBS})
@@ -88,7 +89,10 @@ list(APPEND SEARCHHEADERS setjmp dos endian fcntl float io limits malloc
     pwd search strings unistd sys/sysinfo machine/endian sys/param sys/procfs sys/resource
     sys/systeminfo sys/times sys/utsname string stdlib sys/socket sys/wait netinet/in
     netdb Direct time Ws2tcpip sys/types WindowsX cxxabi float ieeefp stdint sched pthread mathimf
-    signal dlfcn linux_header math sys/time fenv Winsock2)
+    signal dlfcn linux_header math sys/time fenv)
+if (WIN32)
+    list(APPEND SEARCHHEADERS Winsock2 Windows)
+endif()
 set(PETSCCONF_HAVE_HEADERS )
 foreach(hdr ${SEARCHHEADERS})
     STRING(TOUPPER ${hdr} HDR)
@@ -109,7 +113,7 @@ set(PETSC_USE_SOCKET_VIEWER ${PETSC_HAVE_SYS_SOCKET_H})
 # __SSE__
 CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
 
-if (MINGW)
+if (WIN32)
     # check availability of uid_t and gid_t
     if (PETSC_HAVE_UNISTD_H)
         CHECK_SYMBOL_EXISTS(uid_t "unistd.h" PETSC_HAVE_UID_T)
@@ -123,6 +127,8 @@ if (MINGW)
     if (NOT PETSC_HAVE_SSE)
         set(PETSC_HAVE_XMMINTRIN_H NO)
     endif()
+    
+    
 endif()
 
 ########################################################
@@ -162,6 +168,9 @@ list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     # Added in Petsc 3.6.1 (at least here)
     vsnprintf va_copy getrusage vfprintf nanosleep sysinfo vprintf
 )
+if (WIN32)
+    list(APPEND SEARCHFUNCTIONS GetComputerName)
+endif()
 set(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
     STRING(TOUPPER ${func} FUNC)
@@ -225,8 +234,10 @@ endforeach()
 # Fortran interfacing - option above [and passed in as def by opencmiss]
 if (FORTRAN_MANGLING STREQUAL Add_)
     set(PETSC_HAVE_FORTRAN_UNDERSCORE YES)
+    set(PETSC_BLASLAPACK_UNDERSCORE YES)
 elseif(FORTRAN_MANGLING STREQUAL UpCase)
     set(PETSC_HAVE_FORTRAN_CAPS YES)
+    set(PETSC_BLASLAPACK_CAPS YES)
 endif()
 # Note: Not used anywhere but similar: PETSC_HAVE__GFORTRAN_IARGC (underscores!!)
 CHECK_FUNCTION_EXISTS(_gfortran_iargc PETSC_HAVE_GFORTRAN_IARGC)
@@ -346,6 +357,147 @@ if (WITH_OPENMP)
     set(PETSC_HAVE_OPENMP FALSE)
   endif()
 endif()
+
+########################################################
+### __FUNCT__ debug stuff
+include(CheckCSourceCompiles)
+CHECK_C_SOURCE_COMPILES("
+#include <stdio.h>
+int main(void) {
+    printf(\"%s\", __func__);
+    return 0;
+}" HAVE_COMPILER__func__)
+
+CHECK_C_SOURCE_COMPILES("
+#include <stdio.h>
+int main(void) {
+    printf(\"%s\", __FUNCTION__);
+    return 0;
+}" HAVE_COMPILER__FUNCTION__)
+
+set(PETSC_FUNCTION_NAME_C __FUNCT__)
+set(PETSC_FUNCTION_NAME_CXX __FUNCT__)
+if(HAVE_COMPILER__func__)
+    set(PETSC_FUNCTION_NAME_C __func__)
+    set(PETSC_FUNCTION_NAME_CXX __func__)
+elseif(HAVE_COMPILER__FUNCTION__)
+    set(PETSC_FUNCTION_NAME_C __FUNCTION__)
+    set(PETSC_FUNCTION_NAME_CXX __FUNCTION__)
+endif()
+
+########################################################
+# Look for restrict support
+set(RESTRICT_CODE
+    "int main(void)
+     {
+         int* RESTRICT a;
+         return 0;
+     }")
+set(RESTRICT_KEYWORD )     
+SET(restrict_keywords __restrict__ __restrict restrict)
+foreach(restrict_keyword ${restrict_keywords})
+    set(CMAKE_REQUIRED_DEFINITIONS "-DRESTRICT=${restrict_keyword}")
+    check_c_source_compiles("${RESTRICT_CODE}" HAVE_${restrict_keyword})
+    if (HAVE_${restrict_keyword})
+        set(RESTRICT_KEYWORD ${restrict_keyword})
+        break()
+    endif()
+endforeach()
+set(PETSC_C_RESTRICT ${RESTRICT_KEYWORD})
+set(PETSC_CXX_RESTRICT ${RESTRICT_KEYWORD})
+
+#########################################
+# Check for complex numbers in in C99 std
+# Note that since PETSc source code uses _Complex we test specifically for that, not complex
+CHECK_C_SOURCE_COMPILES("
+#include <complex.h>
+int main(void) {
+    double _Complex x;
+    x = I;
+    return 0;
+}" PETSC_HAVE_C99_COMPLEX)
+
+#########################################
+# Misc C stuff
+CHECK_C_SOURCE_COMPILES("
+int main(void) {
+    if (__builtin_expect(0,1)) return 1;
+}" PETSC_HAVE_BUILTIN_EXPECT)
+      
+#########################################
+# Windows-specific stuff
+
+CHECK_C_SOURCE_COMPILES("
+#include <sys/stat.h>
+int main(void) {
+    int a=0;
+    if (S_ISDIR(a)){};
+    return 0;
+}" PETSC_HAVE_S_ISDIR)
+
+#if self.libraries.add('Kernel32.lib','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
+#      self.addDefine('HAVE_WINDOWS_H',1)
+#      self.addDefine('HAVE_GETCOMPUTERNAME',1)
+#      kernel32=1
+#    elif self.libraries.add('kernel32','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
+#      self.addDefine('HAVE_WINDOWS_H',1)
+#      self.addDefine('HAVE_GETCOMPUTERNAME',1)
+#      kernel32=1
+#    if kernel32:
+#      if self.framework.argDB['with-windows-graphics']:
+#        self.addDefine('USE_WINDOWS_GRAPHICS',1)
+#      if self.checkLink('#include <Windows.h>','LoadLibrary(0)'):
+#        self.addDefine('HAVE_LOADLIBRARY',1)
+#      if self.checkLink('#include <Windows.h>','GetProcAddress(0,0)'):
+#        self.addDefine('HAVE_GETPROCADDRESS',1)
+#      if self.checkLink('#include <Windows.h>','FreeLibrary(0)'):
+#        self.addDefine('HAVE_FREELIBRARY',1)
+#      if self.checkLink('#include <Windows.h>','GetLastError()'):
+#        self.addDefine('HAVE_GETLASTERROR',1)
+#      if self.checkLink('#include <Windows.h>','SetLastError(0)'):
+#        self.addDefine('HAVE_SETLASTERROR',1)
+#      if self.checkLink('#include <Windows.h>\n','QueryPerformanceCounter(0);\n'):
+#        self.addDefine('USE_MICROSOFT_TIME',1)
+#    if self.libraries.add('Advapi32.lib','GetUserName',prototype='#include <Windows.h>', call='GetUserName(NULL,NULL);'):
+#      self.addDefine('HAVE_GET_USER_NAME',1)
+#    elif self.libraries.add('advapi32','GetUserName',prototype='#include <Windows.h>', call='GetUserName(NULL,NULL);'):
+#      self.addDefine('HAVE_GET_USER_NAME',1)
+#
+#    if not self.libraries.add('User32.lib','GetDC',prototype='#include <Windows.h>',call='GetDC(0);'):
+#      self.libraries.add('user32','GetDC',prototype='#include <Windows.h>',call='GetDC(0);')
+#    if not self.libraries.add('Gdi32.lib','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);'):
+#      self.libraries.add('gdi32','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);')
+#
+#    self.types.check('int32_t', 'int')
+#    if not self.checkCompile('#include <sys/types.h>\n','uid_t u;\n'):
+#      self.addTypedef('int', 'uid_t')
+#      self.addTypedef('int', 'gid_t')
+#    if not self.checkLink('#if defined(PETSC_HAVE_UNISTD_H)\n#include <unistd.h>\n#endif\n','int a=R_OK;\n'):
+#      self.framework.addDefine('R_OK', '04')
+#      self.framework.addDefine('W_OK', '02')
+#      self.framework.addDefine('X_OK', '01')
+#    if not self.checkLink('#include <sys/stat.h>\n','int a=0;\nif (S_ISDIR(a)){}\n'):
+#      self.framework.addDefine('S_ISREG(a)', '(((a)&_S_IFMT) == _S_IFREG)')
+#      self.framework.addDefine('S_ISDIR(a)', '(((a)&_S_IFMT) == _S_IFDIR)')
+#    if self.checkCompile('#include <Windows.h>\n','LARGE_INTEGER a;\nDWORD b=a.u.HighPart;\n'):
+#      self.addDefine('HAVE_LARGE_INTEGER_U',1)
+#
+    # Windows requires a Binary file creation flag when creating/opening binary files.  Is a better test in order?
+#    if self.checkCompile('#include <Windows.h>\n#include <fcntl.h>\n', 'int flags = O_BINARY;'):
+#      self.addDefine('HAVE_O_BINARY',1)
+#
+#    if self.compilers.CC.find('win32fe') >= 0:
+#      self.addDefine('PATH_SEPARATOR','\';\'')
+#      self.addDefine('DIR_SEPARATOR','\'\\\\\'')
+#      self.addDefine('REPLACE_DIR_SEPARATOR','\'/\'')
+#      self.addDefine('CANNOT_START_DEBUGGER',1)
+#      (petscdir,error,status) = self.executeShellCommand('cygpath -w '+self.petscdir.dir)
+#      self.addDefine('DIR','"'+petscdir.replace('\\','\\\\')+'"')
+#    else:
+#      self.addDefine('PATH_SEPARATOR','\':\'')
+#      self.addDefine('REPLACE_DIR_SEPARATOR','\'\\\\\'')
+#      self.addDefine('DIR_SEPARATOR','\'/\'')
+#      self.addDefine('DIR', '"'+self.petscdir.dir+'"')
 
 message(WARNING "THERE ARE STILL SOME SETTINGS THAT REQUIRE PROPER DETECTION!")
 #PETSC_SIZEOF_MPI_COMM

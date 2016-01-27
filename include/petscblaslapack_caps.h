@@ -77,7 +77,6 @@
 #  define LAPACKtgsen_ DTGSEN
 /* Real double precision with character string arguments. */
 #  define LAPACKpotrf_ DPOTRF
-#  define LAPACKpotrf_ DPOTRI
 #  define LAPACKpotrs_ DPOTRS
 #  define LAPACKpotri_ DPOTRI
 #  define LAPACKsytrf_ DSYTRF

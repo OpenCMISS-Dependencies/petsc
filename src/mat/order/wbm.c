@@ -11,7 +11,7 @@
 */
 
 /* Why not incude superlu_dist inludes? */
-#  if defined(PETSC_BLASLAPACK_CAPS)
+/*#  if defined(PETSC_BLASLAPACK_CAPS)
 #    define mc64id_dist     MC64ID_DIST
 #    define mc64ad_dist     MC64AD_DIST
 
@@ -19,7 +19,7 @@
 #    define mc64id_dist     mc64id_dist
 #    define mc64ad_dist     mc64ad_dist
 
-#  endif
+#  endif*/
 
 PETSC_EXTERN PetscInt mc64id_dist(PetscInt*);
 PETSC_EXTERN PetscInt mc64ad_dist(const PetscInt*, PetscInt*, PetscInt*, const PetscInt*, const PetscInt*n, PetscScalar*, PetscInt*,

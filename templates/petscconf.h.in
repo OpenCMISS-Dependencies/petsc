@@ -68,8 +68,6 @@
 #cmakedefine PETSC_HAVE_MPI_IN_PLACE 1
 
 /* MISC */
-
-#ifdef __MINGW32__
 #cmakedefine PETSC_HAVE_UID_T 1
 #cmakedefine PETSC_HAVE_GID_T 1
 #if !defined(PETSC_HAVE_UID_T)
@@ -78,6 +76,16 @@
 #if !defined(PETSC_HAVE_GID_T)
 #define gid_t int
 #endif
+#ifndef R_OK
+#define R_OK 04
+#define W_OK 02
+#define X_OK 01
+#endif 
+
+#cmakedefine PETSC_HAVE_S_ISDIR
+#ifndef PETSC_HAVE_S_ISDIR
+#define S_ISREG(a) (((a)&_S_IFMT) == _S_IFREG)
+#define S_ISDIR(a) (((a)&_S_IFMT) == _S_IFDIR)
 #endif
 
 #cmakedefine PETSC_HAVE_SIGINFO_T 1
@@ -110,6 +118,8 @@
 /* Fortran */
 #cmakedefine PETSC_HAVE_FORTRAN_UNDERSCORE 1
 #cmakedefine PETSC_HAVE_FORTRAN_CAPS 1
+#cmakedefine PETSC_BLASLAPACK_UNDERSCORE 1
+#cmakedefine PETSC_BLASLAPACK_CAPS 1
 
 #ifndef IS_COLORING_MAX
 #define IS_COLORING_MAX 65535
@@ -128,7 +138,11 @@
 #endif
 
 #ifndef PETSC_DEPRECATED
+#if _MSC_VER >= 1800
+#define PETSC_DEPRECATED(why) __declspec(deprecated(why))
+#else
 #define PETSC_DEPRECATED(why) __attribute((deprecated))
+#endif
 #endif
 
 #ifndef PETSC_REPLACE_DIR_SEPARATOR
@@ -163,9 +177,8 @@
 #define PETSC_SLSUFFIX ""
 #endif
 
-#ifndef PETSC_FUNCTION_NAME_CXX
-#define PETSC_FUNCTION_NAME_CXX __func__
-#endif
+#cmakedefine PETSC_FUNCTION_NAME_C @PETSC_FUNCTION_NAME_C@
+#cmakedefine PETSC_FUNCTION_NAME_CXX @PETSC_FUNCTION_NAME_CXX@ 
 
 #ifndef PETSC_HAVE_ATOLL
 #define PETSC_HAVE_ATOLL 1
@@ -176,11 +189,11 @@
 #endif
 
 #ifndef PETSC_UNUSED
+#ifdef _MSC_VER
+#define PETSC_UNUSED 
+#else
 #define PETSC_UNUSED __attribute((unused))
 #endif
-
-#ifndef PETSC_FUNCTION_NAME_C
-#define PETSC_FUNCTION_NAME_C __func__
 #endif
 
 #ifndef PETSC_HAVE_C2HTML
@@ -191,9 +204,7 @@
 #define PETSC_USE_SINGLE_LIBRARY 1
 #endif
 
-#ifndef PETSC_HAVE_BUILTIN_EXPECT
-#define PETSC_HAVE_BUILTIN_EXPECT 1
-#endif
+#cmakedefine PETSC_HAVE_BUILTIN_EXPECT 1
 
 #ifndef PETSC_DIR_SEPARATOR
 #define PETSC_DIR_SEPARATOR '/'
@@ -232,7 +243,11 @@
 #endif
 
 #ifndef PETSC_C_STATIC_INLINE
+#if _MSC_VER >= 1800
+#define PETSC_C_STATIC_INLINE static __inline
+#else
 #define PETSC_C_STATIC_INLINE static inline
+#endif
 #endif
 
 #ifndef PETSC_HAVE_CXX_NAMESPACE
@@ -243,13 +258,8 @@
 #define PETSC_HAVE_RTLD_GLOBAL 1
 #endif
 
-#ifndef PETSC_C_RESTRICT
-#define PETSC_C_RESTRICT  __restrict__
-#endif
-
-#ifndef PETSC_CXX_RESTRICT
-#define PETSC_CXX_RESTRICT  __restrict__
-#endif
+#cmakedefine PETSC_C_RESTRICT  @PETSC_C_RESTRICT@
+#cmakedefine PETSC_CXX_RESTRICT  @PETSC_CXX_RESTRICT@
 
 #ifndef PETSC_CXX_STATIC_INLINE
 #define PETSC_CXX_STATIC_INLINE static inline
@@ -315,9 +325,7 @@
 #define PETSC_SIZEOF_FLOAT 4
 #endif
 
-#ifndef PETSC_HAVE_C99_COMPLEX
-#define PETSC_HAVE_C99_COMPLEX 1
-#endif
+#cmakedefine PETSC_HAVE_C99_COMPLEX 1
 
 #ifndef PETSC_SIZEOF_INT
 #define PETSC_SIZEOF_INT 4
@@ -331,33 +339,17 @@
 #define PETSC_SIZEOF_SHORT 2
 #endif
 
-#ifndef PETSC_HAVE_VSNPRINTF
-#define PETSC_HAVE_VSNPRINTF 1
-#endif
+#cmakedefine PETSC_HAVE_VSNPRINTF 1
+#cmakedefine PETSC_HAVE_VA_COPY 1
 
-#ifndef PETSC_HAVE_VA_COPY
-#define PETSC_HAVE_VA_COPY 1
-#endif
-
-#ifndef PETSC_HAVE_GETRUSAGE
+#if !defined(PETSC_HAVE_GETRUSAGE) && !defined(_MSC_VER) 
 #define PETSC_HAVE_GETRUSAGE 1
 #endif
 
-#ifndef PETSC_HAVE_VFPRINTF
-#define PETSC_HAVE_VFPRINTF 1
-#endif
-
-#ifndef PETSC_HAVE_NANOSLEEP
-#define PETSC_HAVE_NANOSLEEP 1
-#endif
-
-#ifndef PETSC_HAVE_SYSINFO
-#define PETSC_HAVE_SYSINFO 1
-#endif
-
-#ifndef PETSC_HAVE_VPRINTF
-#define PETSC_HAVE_VPRINTF 1
-#endif
+#cmakedefine PETSC_HAVE_VFPRINTF 1
+#cmakedefine PETSC_HAVE_NANOSLEEP 1
+#cmakedefine PETSC_HAVE_SYSINFO 1
+#cmakedefine PETSC_HAVE_VPRINTF 1
 
 #ifndef PETSC_SIGNAL_CAST
 #define PETSC_SIGNAL_CAST  
@@ -377,10 +369,6 @@
 
 #ifndef PETSC_CPU_RELAX
 #define PETSC_CPU_RELAX() asm volatile("rep; nop" ::: "memory")
-#endif
-
-#ifndef PETSC_BLASLAPACK_UNDERSCORE
-#define PETSC_BLASLAPACK_UNDERSCORE 1
 #endif
 
 #ifndef PETSC_USE_PROC_FOR_SIZE
