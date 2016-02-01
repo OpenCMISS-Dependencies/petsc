@@ -1842,7 +1842,7 @@ if (PETSC_USE_SINGLE_LIBRARY)
       # from the Intel composer 15 ifort compiler - changes to LINK_LANGUAGE do not work as well as 
       # INTERPROCEDURAL_OPTIMIZATION (contrary to https://cmake.org/pipermail/cmake/2010-November/040948.html) 
       if (CMAKE_Fortran_COMPILER_ID STREQUAL Intel)
-          target_link_libraries(petsc PUBLIC $<BUILD_INTERFACE:libifcoremt>)
+          target_link_libraries(petsc PUBLIC libifcoremt)
       endif()
   endif()
   if(PETSC_WIN32FE)
