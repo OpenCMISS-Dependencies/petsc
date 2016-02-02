@@ -7,6 +7,10 @@ option(PACKAGE_CONFIG_DIR "Directory for package config files (relative to CMAKE
 option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
 option(WITH_CUDA "${PROJECT_NAME} - Use CUDA" OFF)
 option(USE_THREADS "Use PTHREAD library" ON)
+if (WIN32)
+    option(PETSC_USE_WINDOWS_GRAPHICS "Use Windows graphics system" ON)
+endif()
+set(PETSC_BITS_PER_BYTE 8)
 SET(CMAKE_NO_SYSTEM_FROM_IMPORTED YES)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)

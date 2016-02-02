@@ -1,6 +1,7 @@
 include(CheckFunctionExists)
 include(CheckFortranFunctionExists)
 include(CheckCSourceCompiles)
+include(CheckCXXSourceCompiles)
 include(CheckFortranSourceCompiles)
 INCLUDE(CheckIncludeFiles)
 include(CheckSymbolExists)

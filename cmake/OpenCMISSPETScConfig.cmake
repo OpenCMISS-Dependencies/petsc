@@ -149,9 +149,25 @@ endif()
 ########################################################
 # Symbol availabilities
 CHECK_TYPE_EXISTS(__int64 __INT64 "")
+if (PETSC_HAVE_WINDOWS_H)
+    CHECK_SYMBOL_EXISTS(O_BINARY "Windows.h;fcntl.h" PETSC_HAVE_O_BINARY)
+endif()
 if (PETSC_HAVE_WINSOCK2_H)
     CHECK_TYPE_EXISTS(socklen_t SOCKLEN_T "Winsock2.h")
 endif()
+
+# Check windows - need extra libraries to find some functions   
+#    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
+#        list(APPEND CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
+#        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
+#        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
+#    endif()
+#    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
+#        
+#        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
+#        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES kernel32)
+#    endif()
+
 
 ########################################################
 # Function availabilities
@@ -166,8 +182,9 @@ list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     # Added in the verge of fixing up for VS2013
     get_command_argument getarg PXFGETARG
 )
-if (WIN32)
-    list(APPEND SEARCHFUNCTIONS GetComputerName)
+if (PETSC_HAVE_WINDOWS_H)
+    list(APPEND SEARCHFUNCTIONS GetComputerName LoadLibrary GetProcAddress FreeLibrary GetLastError SetLastError)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES kernel32)
 endif()
 set(PETSCCONF_HAVE_FUNCS )
 foreach(func ${SEARCHFUNCTIONS})
@@ -457,65 +474,37 @@ int main(void) {
 }" PETSC_HAVE_S_ISDIR)
 
 if (PETSC_HAVE_WINDOWS_H)
-    CHECK_SYMBOL_EXISTS(O_BINARY "Windows.h;fcntl.h" PETSC_HAVE_O_BINARY)
-    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
-        list(APPEND CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
-        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
-        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
-    endif()
-    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
-        list(APPEND CMAKE_REQUIRED_LIBRARIES kernel32)
-        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
-        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES kernel32)
-    endif()
+    CHECK_C_SOURCE_COMPILES("
+    #include <Windows.h>
+    int main(void) {
+        LARGE_INTEGER a;
+        DWORD b=a.u.HighPart;
+        return 0;
+    }" PETSC_HAVE_LARGE_INTEGER_U)
 endif()
 
-#if self.libraries.add('Kernel32.lib','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
-#      self.addDefine('HAVE_GETCOMPUTERNAME',1)
-#      kernel32=1
-#    elif self.libraries.add('kernel32','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
-#      self.addDefine('HAVE_GETCOMPUTERNAME',1)
-#      kernel32=1
-#    if kernel32:
-#      if self.framework.argDB['with-windows-graphics']:
-#        self.addDefine('USE_WINDOWS_GRAPHICS',1)
-#      if self.checkLink('#include <Windows.h>','LoadLibrary(0)'):
-#        self.addDefine('HAVE_LOADLIBRARY',1)
-#      if self.checkLink('#include <Windows.h>','GetProcAddress(0,0)'):
-#        self.addDefine('HAVE_GETPROCADDRESS',1)
-#      if self.checkLink('#include <Windows.h>','FreeLibrary(0)'):
-#        self.addDefine('HAVE_FREELIBRARY',1)
-#      if self.checkLink('#include <Windows.h>','GetLastError()'):
-#        self.addDefine('HAVE_GETLASTERROR',1)
-#      if self.checkLink('#include <Windows.h>','SetLastError(0)'):
-#        self.addDefine('HAVE_SETLASTERROR',1)
-#      if self.checkLink('#include <Windows.h>\n','QueryPerformanceCounter(0);\n'):
-#        self.addDefine('USE_MICROSOFT_TIME',1)
-#    if self.libraries.add('Advapi32.lib','GetUserName',prototype='#include <Windows.h>', call='GetUserName(NULL,NULL);'):
-#      self.addDefine('HAVE_GET_USER_NAME',1)
-#    elif self.libraries.add('advapi32','GetUserName',prototype='#include <Windows.h>', call='GetUserName(NULL,NULL);'):
-#      self.addDefine('HAVE_GET_USER_NAME',1)
-#    if not self.libraries.add('User32.lib','GetDC',prototype='#include <Windows.h>',call='GetDC(0);'):
-#      self.libraries.add('user32','GetDC',prototype='#include <Windows.h>',call='GetDC(0);')
-#    if not self.libraries.add('Gdi32.lib','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);'):
-#      self.libraries.add('gdi32','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);')
-#    if self.checkCompile('#include <Windows.h>\n','LARGE_INTEGER a;\nDWORD b=a.u.HighPart;\n'):
-#      self.addDefine('HAVE_LARGE_INTEGER_U',1)
-    #      self.addDefine('HAVE_O_BINARY',1)
-#    if self.compilers.CC.find('win32fe') >= 0:
-#      self.addDefine('REPLACE_DIR_SEPARATOR','\'/\'')
-#    else:
-#      self.addDefine('REPLACE_DIR_SEPARATOR','\'\\\\\'')
+CHECK_CXX_SOURCE_COMPILES("
+#include <complex>
+int main(void) {
+    std::complex<double> x;
+    return 0;
+}" PETSC_HAVE_CXX_COMPLEX)
+
+
+CHECK_FUNCTION_EXISTS(QueryPerformanceCounter PETSC_USE_MICROSOFT_TIME)
+list(APPEND CMAKE_REQUIRED_LIBRARIES advapi32)
+CHECK_FUNCTION_EXISTS(GetUserName PETSC_HAVE_GET_USER_NAME)
+list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES advapi32)
 
 set(PETSC_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 if (WIN32)
-    set(PETSC_DIR_SEPARATOR '\')
+    set(PETSC_DIR_SEPARATOR '\\\\')
+    set(PETSC_REPLACE_DIR_SEPARATOR '/')
     set(PETSC_PATH_SEPARATOR ';')
 else()
     set(PETSC_DIR_SEPARATOR '/')
+    set(PETSC_REPLACE_DIR_SEPARATOR '\\\\')
     set(PETSC_PATH_SEPARATOR ':')
 endif()
 
 message(WARNING "THERE ARE STILL SOME SETTINGS THAT REQUIRE PROPER DETECTION!")
-#PETSC_BITS_PER_BYTE
-#CANNOT_START_DEBUGGER
