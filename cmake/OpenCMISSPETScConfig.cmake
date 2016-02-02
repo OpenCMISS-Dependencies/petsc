@@ -73,8 +73,8 @@ if (USE_THREADS)
     if (Threads_FOUND)
         set(PETSC_HAVE_PTHREAD YES)
         list(APPEND PETSC_PACKAGE_LIBS ${CMAKE_THREAD_LIBS_INIT})
-        CHECK_SYMBOL_EXISTS(pthread_barrier_t pthread.h PETSC_HAVE_PTHREAD_BARRIER_T)
-        CHECK_SYMBOL_EXISTS(cpu_set_t sched.h PETSC_HAVE_SCHED_CPU_SET_T)
+        CHECK_TYPE_EXISTS(pthread_barrier_t PTHREAD_BARRIER_T pthread.h)
+        CHECK_TYPE_EXISTS(cpu_set_t SCHED_CPU_SET_T sched.h)
         list(APPEND SEARCHHEADERS sys/sysctl) 
     else()
         message(WARNING "Threading was requested (USE_THREADS=${USE_THREADS}), but package could not be found. Disabling.")
@@ -113,22 +113,18 @@ set(PETSC_USE_SOCKET_VIEWER ${PETSC_HAVE_SYS_SOCKET_H})
 # __SSE__
 CHECK_SYMBOL_EXISTS(__SSE__ "" PETSC_HAVE_SSE)
 
-if (WIN32)
-    # check availability of uid_t and gid_t
-    if (PETSC_HAVE_UNISTD_H)
-        CHECK_SYMBOL_EXISTS(uid_t "unistd.h" PETSC_HAVE_UID_T)
-        CHECK_SYMBOL_EXISTS(gid_t "unistd.h" PETSC_HAVE_GID_T)
-    elseif (PETSC_HAVE_SYS_TYPES_H)
-        CHECK_SYMBOL_EXISTS(uid_t "sys/types.h" PETSC_HAVE_UID_T)
-        CHECK_SYMBOL_EXISTS(gid_t "sys/types.h" PETSC_HAVE_GID_T)
-    endif()
-    
-    # __SSE__
-    if (NOT PETSC_HAVE_SSE)
-        set(PETSC_HAVE_XMMINTRIN_H NO)
-    endif()
-    
-    
+# check availability of uid_t and gid_t
+if (PETSC_HAVE_UNISTD_H)
+    CHECK_TYPE_EXISTS(uid_t UID_T "unistd.h")
+    CHECK_TYPE_EXISTS(gid_t GID_T "unistd.h")
+elseif (PETSC_HAVE_SYS_TYPES_H)
+    CHECK_TYPE_EXISTS(uid_t UID_T "sys/types.h")
+    CHECK_TYPE_EXISTS(gid_t GID_T "sys/types.h")
+endif()
+
+# __SSE__
+if (NOT PETSC_HAVE_SSE)
+    set(PETSC_HAVE_XMMINTRIN_H NO)
 endif()
 
 ########################################################
@@ -147,14 +143,14 @@ endforeach()
 STRING(REPLACE ";" "\n\n" PETSCCONF_HAVE_SIGNAL "${PETSCCONF_HAVE_SIGNAL}")
 #message(STATUS "Detected available headers: ${PETSCCONF_HAVE_SIGNAL}")
 if (PETSC_HAVE_SIGNAL_H)
-    CHECK_SYMBOL_EXISTS(siginfo_t "signal.h" PETSC_HAVE_SIGINFO_T)
+    CHECK_TYPE_EXISTS(siginfo_t SIGINFO_T "signal.h")
 endif()
 
 ########################################################
 # Symbol availabilities
-CHECK_SYMBOL_EXISTS(__int64 "" PETSC_HAVE___INT64)
+CHECK_TYPE_EXISTS(__int64 __INT64 "")
 if (PETSC_HAVE_WINSOCK2_H)
-    CHECK_SYMBOL_EXISTS(socklen_t "Winsock2.h" PETSC_HAVE_SOCKLEN_T)
+    CHECK_TYPE_EXISTS(socklen_t SOCKLEN_T "Winsock2.h")
 endif()
 
 ########################################################
@@ -201,13 +197,13 @@ if (PETSC_HAVE_MPI)
     trycompile(PETSC_HAVE_MPI_COMBINER_DUP "#include <mpi.h>" "int combiner = MPI_COMBINER_DUP;" c)
     #CHECK_SYMBOL_EXISTS(MPI_COMBINER_CONTIGUOUS mpi.h PETSC_HAVE_MPI_COMBINER_CONTIGUOUS)
     trycompile(PETSC_HAVE_MPI_COMBINER_CONTIGUOUS "#include <mpi.h>" "int combiner = MPI_COMBINER_CONTIGUOUS;" c)
-    # MPI_Fint is a typedef - - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
-    #CHECK_SYMBOL_EXISTS(MPI_Fint mpi.h PETSC_HAVE_MPI_FINT)
-    trycompile(PETSC_HAVE_MPI_FINT "#include <mpi.h>" "MPI_Fint a;" c)
+    # MPI_Fint/MPI_Comm are typedefs - - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
+    CHECK_TYPE_EXISTS(MPI_Fint MPI_FINT mpi.h)
+    CHECK_TYPE_EXISTS(MPI_Comm MPI_COMM mpi.h)
     
     # Data types
     foreach(MPI_DATATYPE MPI_LONG_DOUBLE MPI_INT64_T MPI_C_DOUBLE_COMPLEX)
-        CHECK_SYMBOL_EXISTS(${MPI_DATATYPE} mpi.h PETSC_HAVE_${MPI_DATATYPE})
+        CHECK_TYPE_EXISTS(${MPI_DATATYPE} ${MPI_DATATYPE} "mpi.h")
         if (PETSC_HAVE_${MPI_DATATYPE})
             list(APPEND PETSCCONF_HAVE_FUNCS "#define PETSC_HAVE_${MPI_DATATYPE} 1")
         endif()
@@ -374,6 +370,16 @@ if (WITH_OPENMP)
 endif()
 
 ########################################################
+# Type sizes
+# (mpi related are further up)
+set(CHECK_TYPES long size_t int short char double float)
+foreach(TYPE ${CHECK_TYPES})
+    string(TOUPPER ${TYPE} _NAME)
+    CHECK_TYPE_SIZE(${TYPE} PETSC_SIZEOF_${_NAME})
+endforeach()
+CHECK_TYPE_SIZE("long long" PETSC_SIZEOF_LONG_LONG)
+
+########################################################
 ### __FUNCT__ debug stuff
 include(CheckCSourceCompiles)
 CHECK_C_SOURCE_COMPILES("
@@ -450,12 +456,24 @@ int main(void) {
     return 0;
 }" PETSC_HAVE_S_ISDIR)
 
+if (PETSC_HAVE_WINDOWS_H)
+    CHECK_SYMBOL_EXISTS(O_BINARY "Windows.h;fcntl.h" PETSC_HAVE_O_BINARY)
+    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
+        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
+        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES Kernel32.lib)
+    endif()
+    if (NOT PETSC_HAVE_GETCOMPUTERNAME)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES kernel32)
+        CHECK_FUNCTION_EXISTS(GetComputerName PETSC_HAVE_GETCOMPUTERNAME)
+        list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES kernel32)
+    endif()
+endif()
+
 #if self.libraries.add('Kernel32.lib','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
-#      self.addDefine('HAVE_WINDOWS_H',1)
 #      self.addDefine('HAVE_GETCOMPUTERNAME',1)
 #      kernel32=1
 #    elif self.libraries.add('kernel32','GetComputerName',prototype='#include <Windows.h>', call='GetComputerName(NULL,NULL);'):
-#      self.addDefine('HAVE_WINDOWS_H',1)
 #      self.addDefine('HAVE_GETCOMPUTERNAME',1)
 #      kernel32=1
 #    if kernel32:
@@ -483,31 +501,21 @@ int main(void) {
 #      self.libraries.add('gdi32','CreateCompatibleDC',prototype='#include <Windows.h>',call='CreateCompatibleDC(0);')
 #    if self.checkCompile('#include <Windows.h>\n','LARGE_INTEGER a;\nDWORD b=a.u.HighPart;\n'):
 #      self.addDefine('HAVE_LARGE_INTEGER_U',1)
-    # Windows requires a Binary file creation flag when creating/opening binary files.  Is a better test in order?
-#    if self.checkCompile('#include <Windows.h>\n#include <fcntl.h>\n', 'int flags = O_BINARY;'):
-#      self.addDefine('HAVE_O_BINARY',1)
+    #      self.addDefine('HAVE_O_BINARY',1)
 #    if self.compilers.CC.find('win32fe') >= 0:
-#      self.addDefine('PATH_SEPARATOR','\';\'')
-#      self.addDefine('DIR_SEPARATOR','\'\\\\\'')
 #      self.addDefine('REPLACE_DIR_SEPARATOR','\'/\'')
-#      self.addDefine('CANNOT_START_DEBUGGER',1)
-#      (petscdir,error,status) = self.executeShellCommand('cygpath -w '+self.petscdir.dir)
-#      self.addDefine('DIR','"'+petscdir.replace('\\','\\\\')+'"')
 #    else:
-#      self.addDefine('PATH_SEPARATOR','\':\'')
 #      self.addDefine('REPLACE_DIR_SEPARATOR','\'\\\\\'')
-#      self.addDefine('DIR_SEPARATOR','\'/\'')
-#      self.addDefine('DIR', '"'+self.petscdir.dir+'"')
+
+set(PETSC_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+if (WIN32)
+    set(PETSC_DIR_SEPARATOR '\')
+    set(PETSC_PATH_SEPARATOR ';')
+else()
+    set(PETSC_DIR_SEPARATOR '/')
+    set(PETSC_PATH_SEPARATOR ':')
+endif()
 
 message(WARNING "THERE ARE STILL SOME SETTINGS THAT REQUIRE PROPER DETECTION!")
-#PETSC_SIZEOF_MPI_COMM
-#PETSC_SIZEOF_MPI_FINT
 #PETSC_BITS_PER_BYTE
-#PETSC_SIZEOF_VOID_P
-#PETSC_SIZEOF_LONG
-#PETSC_SIZEOF_SIZE_T
-#PETSC_SIZEOF_INT
-#PETSC_SIZEOF_LONG_LONG
-#PETSC_SIZEOF_SHORT
-#PETSC_C_RESTRICT
-#PETSC_CXX_RESTRICT
+#CANNOT_START_DEBUGGER
