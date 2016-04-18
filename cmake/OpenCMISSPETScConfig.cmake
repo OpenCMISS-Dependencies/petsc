@@ -171,6 +171,8 @@ endif()
 
 ########################################################
 # Function availabilities
+CHECK_SYMBOL_EXISTS("vsnprintf" "stdio.h" PETSC_HAVE_VSNPRINTF)
+
 list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomainname gethostname
     gettimeofday getwd memalign memmove mkstemp popen PXFGETARG rand getpagesize
     readlink realpath sigaction signal sigset usleep sleep _sleep socket times
@@ -178,7 +180,8 @@ list(APPEND SEARCHFUNCTIONS access _access clock drand48 getcwd _getcwd getdomai
     strcasecmp bzero dlopen dlsym dlclose dlerror get_nprocs sysctlbyname _set_output_format
     closesocket WSAGetLastError # from missing.py:65 / socket stuff
     # Added in Petsc 3.6.1 (at least here)
-    vsnprintf va_copy getrusage vfprintf nanosleep sysinfo vprintf
+    # vsnprintf - see above
+    va_copy getrusage vfprintf nanosleep sysinfo vprintf
     # Added in the verge of fixing up for VS2013
     get_command_argument getarg PXFGETARG
 )
@@ -195,25 +198,6 @@ foreach(func ${SEARCHFUNCTIONS})
         list(APPEND PETSCCONF_HAVE_FUNCS "#define ${VARNAME} 1")
     endif()
 endforeach()
-
-if(MSVC)
-    # Extra check for vsnprintf on Windows.
-    CHECK_C_SOURCE_COMPILES(
-    "
-    #include <stdio.h>
-    int main(int ac, char*av[]){
-    char *str; size_t len; const char *format; va_list Argp;
-    vsnprintf(str, len, format, Argp);
-    if(ac > 1000)
-        {
-        return *av[0];
-        }
-    return 0;
-    }
-    "
-
-    PETSC_HAVE_VSNPRINTF)
-endif()
 
 # MPI extras - see Buildsystem/config/packages/MPI.py lines 781 ff
 if (PETSC_HAVE_MPI)
