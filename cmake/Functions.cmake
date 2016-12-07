@@ -17,7 +17,7 @@ function(trycompile VARIABLE INCLUDES CODE EXT)
         #file(MAKE_DIRECTORY ${BINDIR})
         #STRING(RANDOM LENGTH 6 SALT)
         #SET(SOURCEFILE ${BINDIR}/trycompile_${VARIABLE}_${SALT}.${EXT})
-        if (${EXT} STREQUAL "c" OR ${EXT} STREQUAL "cpp")
+        if ("${EXT}" STREQUAL "c" OR "${EXT}" STREQUAL "cpp")
             SET(STUB "
                 ${INCLUDES}
                 #ifdef __CLASSIC_C__
@@ -40,7 +40,7 @@ function(trycompile VARIABLE INCLUDES CODE EXT)
             #if (${EXT} STREQUAL "cpp")
             #    SET(COMPILER -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
             #endif()
-        elseif(${EXT} STREQUAL "f" OR ${EXT} STREQUAL "f90")
+        elseif("${EXT}" STREQUAL "f" OR "${EXT}" STREQUAL "f90")
             SET(STUB "
                 ${INCLUDES}
                 program TESTFortran
