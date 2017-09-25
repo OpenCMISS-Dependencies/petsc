@@ -19,10 +19,8 @@ set(SEARCHFUNCTIONS )
 # MPI
 find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
-if (NOT CMAKE_C_COMPILER STREQUAL MPI_C_COMPILER)
-    list(APPEND PETSC_PACKAGE_LIBS ${MPI_Fortran_LIBRARIES} ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
-    list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
-endif()
+list(APPEND PETSC_PACKAGE_LIBS ${MPI_Fortran_LIBRARIES} ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
+list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
 # Extra MPI-related functions
 list(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
       MPI_Iallreduce MPI_Ibarrier MPI_Finalized MPI_Exscan MPIX_Iallreduce MPI_Win_create MPI_Alltoallw MPI_Type_create_indexed_block)
@@ -212,7 +210,10 @@ if (PETSC_HAVE_MPI)
     CHECK_SYMBOL_EXISTS(MPI_Comm_f2c mpi.h PETSC_HAVE_MPI_COMM_F2C)
     CHECK_SYMBOL_EXISTS(MPI_Comm_c2f mpi.h PETSC_HAVE_MPI_COMM_C2F)
     CHECK_SYMBOL_EXISTS(MPI_IN_PLACE mpi.h PETSC_HAVE_MPI_IN_PLACE)
-    
+    set(CMAKE_REQUIRED_LIBRARIES ${MPI_C_LIBRARIES})
+    CHECK_SYMBOL_EXISTS(MPI_Type_dup mpi.h PETSC_HAVE_MPI_TYPE_DUP)
+    set(CMAKE_REQUIRED_LIBRARIES)
+
     # The CheckSymbolExists wont find enum types - see http://www.cmake.org/cmake/help/v3.2/module/CheckSymbolExists.html
     #CHECK_SYMBOL_EXISTS(MPI_COMBINER_DUP mpi.h PETSC_HAVE_MPI_COMBINER_DUP)
     trycompile(PETSC_HAVE_MPI_COMBINER_DUP "#include <mpi.h>" "int combiner = MPI_COMBINER_DUP;" c)
