@@ -1922,4 +1922,4 @@ file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-dependencies.cmake "set(_IM
 install(FILES 
     ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-version.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-dependencies.cmake
-    DESTINATION ${PACKAGE_CONFIG_DIR})    
+    DESTINATION ${PACKAGE_CONFIG_DIR})
