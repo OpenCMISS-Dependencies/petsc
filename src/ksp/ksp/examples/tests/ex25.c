@@ -16,7 +16,7 @@ int main(int argc,char **args)
   PC          pc;
   KSP         ksp;
   PetscViewer view;
-  char        filein[128];     /* input file name */
+  char        filein[256];     /* input file name */
 
   PetscInitialize(&argc,&args,(char*)0,help);
   ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
@@ -24,7 +24,7 @@ int main(int argc,char **args)
 
   /* Load the binary data file "filein". Set runtime option: -fload filein */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Load dataset ...\n");CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,"-fload",filein,128,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-fload",filein,256,NULL);CHKERRQ(ierr);
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filein,FILE_MODE_READ,&view);CHKERRQ(ierr);
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
   ierr = MatSetType(C,MATMPISBAIJ);CHKERRQ(ierr);

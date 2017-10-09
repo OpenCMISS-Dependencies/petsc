@@ -1,0 +1,81 @@
+Two data sets of indefinite matrix:
+  afiro: contributed by S. Benson, M=N=59, nz=225, ill-conditioned.
+  golan: contributed by T. Munson, M=N=4303, nz=33157, cond. approx 1.e8.  
+
+xxx_A.dat: matrix in ascii format
+xxx_b.dat: rhs in ascii format
+xxx_u.dat: true solution in ascii format (greated by Matlab dense solver)
+xxx:       converted Petsc binary sparse format 
+           (see `~petsc/matrices/readme' for details) 
+
+/mat/examples/tests/ex78.c: 
+     example on how to convert Matlab ascii format to Petsc binary form.
+/sles/examples/tests/ex25.c: 
+     example on loading binary data and solve the indefinite system
+
+sequential output of ex25.c 
+==============================
+1. on data set afiro: 
+   ("-pc_type jacobi" fails for all the three ksp methods 
+     It is an "indefinite preconditioner")
+=========
+-ksp_max_it 150 -ksp_rtol 1.e-10 -pc_type none:
+----------------------------------------------
+ CG:
+Number of iterations = 150
+Residual norm: 0.616078;  Error norm: 1.78961.
+
+ MINRES:
+Number of iterations = 150
+Residual norm: 0.0969619;  Error norm: 1.81172.
+
+ SYMMLQ:
+Number of iterations = 150
+Residual norm: 0.216997;  Error norm: 1.66926. 
+
+-ksp_max_it 70 -ksp_rtol 1.e-10 -pc_type jacobi -pc_jacobi_rowmax
+----------------------------------------------------------------
+ CG:
+Number of iterations =  70
+Residual norm: 0.0011258;  Error norm: 0.000230106.
+
+ MINRES:
+Number of iterations =  70
+Residual norm: 3.39516e-05;  Error norm: 0.470816.
+
+ SYMMLQ:
+Number of iterations =  70
+Residual norm: 0.00461956;  Error norm: 0.00202006.  
+===================
+2. on data set golan:
+   (-pc_type jacobi fails as an "Indefinite preconditioner")
+=====================
+-np 1:
+---------
+-pc_type none:
+---------------
+  CG:
+ Number of iterations = 10000
+ Residual norm 7.69948;  Error norm 397.12.
+
+  MINRES:
+ Number of iterations = 10000
+ Residual norm 0.0212476;  Error norm 390.082.
+
+  SYMMLQ:
+ Number of iterations = 10000
+ Residual norm 2.94641;  Error norm 388.242. 
+
+-pc_type jacobi -pc_jacobi_rowmax:
+-----------------------------------
+  CG:
+ Number of iterations = 10000
+ Residual norm: 1.24166;  Error norm: 3.0973.
+
+  MINRES:
+ Number of iterations = 10000
+ Residual norm: 0.00976014;  Error norm: 236.398.
+
+  SYMMLQ:
+ Number of iterations = 10000
+ Residual norm: 0.132509;  Error norm: 0.497156.  
