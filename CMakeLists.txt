@@ -3,7 +3,7 @@ project(PETSc VERSION 3.6.1 LANGUAGES C Fortran CXX)
 
 option(BUILD_TESTS "${PROJECT_NAME} - Build tests" ON)
 option(BUILD_TUTORIALS "${PROJECT_NAME} - Build PetSC tutorials" OFF)
-option(PACKAGE_CONFIG_DIR "Directory for package config files (relative to CMAKE_INSTALL_PREFIX)" "lib/cmake")
+set(PACKAGE_CONFIG_DIR "lib/cmake" CACHE STRING "Directory for package config files (relative to CMAKE_INSTALL_PREFIX)")
 option(WITH_OPENMP "${PROJECT_NAME} - Use OpenMP" ON)
 option(WITH_CUDA "${PROJECT_NAME} - Use CUDA" OFF)
 option(USE_THREADS "Use PTHREAD library" ON)
