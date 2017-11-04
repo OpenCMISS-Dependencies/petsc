@@ -1900,7 +1900,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-dependencies.cmake
 )
 foreach(PETSC_DEP ${PETSC_DEPENDENCIES})
     if (${PETSC_DEP}_FOUND)
-        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-dependencies.cmake "find_dependency(${PETSC_DEP} ${${PETSC_DEP}_VERSION})\r\n")
+        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/petsc-config-dependencies.cmake "set(${PETSC_DEP}_FIND_SYSTEM ${${PETSC_DEP}_FIND_SYSTEM})\r\nfind_dependency(${PETSC_DEP} ${${PETSC_DEP}_VERSION})\r\n")
     endif()
 endforeach()
 if (PETSC_HAVE_CUDA)
