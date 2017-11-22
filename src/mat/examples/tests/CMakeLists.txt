@@ -102,6 +102,7 @@ ADDTEST(mat_tests_76_np1_1_bs-${bs} 1 run_mat_tests_76 FALSE "-bs  ${bs} ")
 endforeach()
 ADDTEST(mat_tests_76_np1_1_v1 1 run_mat_tests_76 output/ex76_1.out "-testaij ")
 add_executable(run_mat_tests_85f ex85f.F)
+set_target_properties(run_mat_tests_85f PROPERTIES LINKER_LANGUAGE Fortran) # For Intel compiler 2017.4.196
 target_link_libraries(run_mat_tests_85f petsc)
 ADDTEST(mat_tests_85f_np1_1 1 run_mat_tests_85f output/ex85f_1.out " ")
 add_executable(run_mat_tests_86 ex86.c)
