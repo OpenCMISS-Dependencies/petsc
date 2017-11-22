@@ -4,6 +4,7 @@ ADDTEST(snes_tests_1_np1_1 1 run_snes_tests_1 output/ex1_1.out "-ksp_gmres_cgs_r
 ADDTEST(snes_tests_1_np1_2 1 run_snes_tests_1 output/ex1_2.out "-snes_monitor_short -snes_type newtontr -ksp_gmres_cgs_refinement_type refine_always ")
 ADDTEST(snes_tests_1_np1_3 1 run_snes_tests_1 output/ex1_3.out "-snes_monitor_short -mat_coloring_type sl  -snes_fd_coloring -mx 8 -my 11 -ksp_gmres_cgs_refinement_type refine_always ")
 add_executable(run_snes_tests_1f ex1f.F)
+set_target_properties(run_snes_tests_1f PROPERTIES LINKER_LANGUAGE Fortran) # For Intel compiler 2017.4.196
 target_link_libraries(run_snes_tests_1f petsc)
 ADDTEST(snes_tests_1f_np1_2 1 run_snes_tests_1f output/ex1f_2.out "-snes_monitor_short -nox -snes_fd -ksp_gmres_cgs_refinement_type refine_always ")
 ADDTEST(snes_tests_1f_np1_3 1 run_snes_tests_1f output/ex1f_2.out "-snes_monitor_short -nox -snes_fd_coloring -ksp_gmres_cgs_refinement_type refine_always ")
