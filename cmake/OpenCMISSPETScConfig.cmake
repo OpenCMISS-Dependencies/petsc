@@ -19,7 +19,7 @@ set(SEARCHFUNCTIONS )
 # MPI
 find_package(MPI REQUIRED)
 set(PETSC_HAVE_MPI YES)
-list(APPEND PETSC_PACKAGE_LIBS mpi-c mpi-fortran)
+list(APPEND PETSC_PACKAGE_LIBS MPI::MPI_C MPI::MPI_Fortran)
 list(APPEND PETSC_PACKAGE_INCLUDES ${MPI_Fortran_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH} ${MPI_C_INCLUDE_PATH})
 # Extra MPI-related functions
 list(APPEND SEARCHFUNCTIONS MPI_Comm_spawn MPI_Type_get_envelope MPI_Type_get_extent MPI_Type_dup MPI_Init_thread
