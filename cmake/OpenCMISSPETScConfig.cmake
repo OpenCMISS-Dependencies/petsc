@@ -47,7 +47,7 @@ set(PETSC_HAVE_SOWING NO)
 
 # Socket stuff (missing.py:65)
 if (WIN32)
-    list(APPEND PETSC_PACKAGE_LIBS Ws2_32)
+    list(APPEND PETSC_PACKAGE_LIBS Ws2_32 gdi32)
 endif()
 
 # Set libraries etc that will be included at link time for function existence tests
